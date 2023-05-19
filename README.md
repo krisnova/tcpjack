@@ -1,58 +1,32 @@
-# Rust template repository.
+# TCP Instrumentation
 
-An opinionated starting point for rust projects such as
-
- - systemd services
- - command line tools
- - client programs
- - server programs
- - libraries and daemons
+A TCP instrumentation tool which will inject a trace packet in an already established TCP connection.
 
 
-# Logging 
+### Strategies
 
-The program will log in 2 places by default:
+ 1. Send a SYN+ACK packet to the server, and ensure the server ignores the payload and the payload is not passed to userspace.
+ 2. 
 
- - `stdout`
- - `syslog`
-
-There is a simple `-v` `--verbose` flag that can be toggled on/off to increase and decrease the level of the logs.
-
-Enabling verbose mode will simply add `Trace` and `Debug` levels to the default configuration.
-
-| Default Runtime   | +Verbose       |
-|-------------------|----------------|
- | Info, Warn, Error | +Trace, +Debug |
-
-
-# Flags
-
-We prefer flags over environmental variables for runtime configuration.
-
-Flags can be added to the `main.rs` file following the official [clap examples](https://github.com/clap-rs/clap/tree/v2.33.0/examples)
-
-
-# Clion
-
-I use [clion](https://www.jetbrains.com/clion/) to develop rust. I use a few features: 
-
-### Auto Imports 
-
-This will automatically "fix" my `use` statements in the `2021` edition of Rust.
 
 ```
-Editor > General > Auto Import > Rust
- [X] Import out-of-scope items on completion.
+   0                   1                   2                   3   
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |          Source Port          |       Destination Port        |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                        Sequence Number                        |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                    Acknowledgment Number                      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  Data |           |U|A|P|R|S|F|                               |
+   | Offset| Reserved  |R|C|S|S|Y|I|            Window             |
+   |       |           |G|K|H|T|N|N|                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |           Checksum            |         Urgent Pointer        |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                    Options                    |    Padding    |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                             data                              |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
-
-### Auto Formatting 
-
-This will automatically `rustfmt` my code when I save.
-
-```
-Languages and Frameworks > Rust > Rustfmt
- [X] Run rustfmt on save
-```
-
-
-
