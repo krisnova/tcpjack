@@ -1,13 +1,15 @@
-# TCP Instrumentation
+# TCP Jack
 
-A TCP instrumentation tool which will inject a trace packet in an already established TCP connection.
+Hijack and instrument an established TCP connection with trace and performance metadata.
 
+Send trace metrics over raw TCP.
 
-### Strategies
+### Strategy 
 
- 1. Send a SYN+ACK packet to the server, and ensure the server ignores the payload and the payload is not passed to userspace.
- 2. 
+ 1. List existing TCP connections we can hijack.
+ 2. Instrument an existing TCP connection.
 
+# TCP Packet
 
 ```
    0                   1                   2                   3   
