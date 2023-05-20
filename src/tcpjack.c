@@ -17,15 +17,58 @@
 #include <stdio.h>
 #include "tcpjack.h"
 
-int main(int argc, char **argv) {
-  printf("tcpjack v%s\n", VERSION);
+void usage() {
+  printf("\ntcpjack v%s\n", VERSION);
+  printf("Written By: Kris Nóva <nova@krisnova.net>\n\n");
+  printf("TCP hijack and instrumentation tool.\nTrace established TCP connections.\n");
+  printf("\n");
+  printf("Usage: \n");
+  printf("tcpjack [options]\n");
+  printf("\n");
+  printf("Options:\n");
+  printf("-h, help           Display help and usage.\n");
+  printf("-l, list           List establish TCP connections.\n");
+  printf("\n");
+  exit(0);
+}
 
-  // Left off here:
-  //
-  // Basically go start at https://github.com/libnet/libnet/blob/master/include/libnet/libnet-functions.h#L38-L63
-  //
-  // We want to initialize libnet and the libnet_t structure
-  // We also need to do the plumbing and command line semantics for list and jack
-  
+/**
+ * config is the CLI options that are used throughout boopkit
+ */
+struct config {
+  int list;
+} cfg;
+
+/**
+ * clisetup is used to initalize the program from the command line
+ *
+ * @param argc
+ * @param argv
+ */
+void clisetup(int argc, char **argv) {
+  cfg.list = 0;
+  for (int i = 0; i < argc; i++) {
+    if (argv[i][0] == '-') {
+      switch (argv[i][1]) {
+      case 'h':
+        usage();
+        break;
+      case 'l':
+        cfg.list = 1;
+        break;
+      }
+    }
+  }
+  if (argc < 2) {
+    usage();
+  }
+}
+
+int main(int argc, char **argv) {
+  clisetup(argc, argv);
+  if (cfg.list == 1) {
+    // List established TCP connections.
+    printf("List...\n");
+  }
   return 0;
 }

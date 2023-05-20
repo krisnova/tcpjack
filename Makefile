@@ -16,14 +16,15 @@
 
 all: compile
 
-TARGET       ?=  tcpjack
-CFLAGS       ?= -I/usr/include -I./include -g
+CC           ?= clang
+TARGET       ?= tcpjack
+CFLAGS       ?= -I/usr/include -I./include -L/usr/lib -g
 LDFLAGS      ?=
-LIBS         ?=
+LIBS         ?= -lnet -lpcap
 STYLE         = Google
 
 compile: ## Compile for the local architecture ⚙
-	gcc $(CFLAGS) $(LDFLAGS) $(LIBS) -static -o $(TARGET) src/tcpjack.c
+	@$(CC) $(CFLAGS) $(LDFLAGS) $(LIBS) -o $(TARGET) src/tcpjack.c src/tcplist.c
 
 install: ## Install the program to /usr/bin 🎉
 	@echo "Installing..."
