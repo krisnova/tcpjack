@@ -1,5 +1,5 @@
 # =========================================================================== #
-#             Apache2.0 Copyright (c) 2022 Kris Nóva <kris@nivenly.com>       #
+#             Apache2.0 Copyright (c) 2022 Kris Nóva <krisnova@krisnova.net>       #
 #                                                                             #
 #                 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓                 #
 #                 ┃   ███╗   ██╗ ██████╗ ██╗   ██╗ █████╗   ┃                 #
@@ -24,7 +24,7 @@ LIBS         ?= -lnet -lpcap
 STYLE         = Google
 
 compile: ## Compile for the local architecture ⚙
-	@$(CC) $(CFLAGS) $(LDFLAGS) $(LIBS) -o $(TARGET) src/tcpjack.c src/tcplist.c
+	@$(CC) $(CFLAGS) $(LDFLAGS) $(LIBS) -o $(TARGET) src/tcpjack.c src/list.c src/proc.c
 
 install: ## Install the program to /usr/bin 🎉
 	@echo "Installing..."

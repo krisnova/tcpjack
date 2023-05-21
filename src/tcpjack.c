@@ -1,5 +1,5 @@
 // =========================================================================== //
-//             Apache2.0 Copyright (c) 2022 Kris Nóva <kris@nivenly.com>       //
+//             Apache2.0 Copyright (c) 2022 Kris Nóva <krisnova@krisnova.net>       //
 //                                                                             //
 //                 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓                 //
 //                 ┃   ███╗   ██╗ ██████╗ ██╗   ██╗ █████╗   ┃                 //
@@ -19,15 +19,15 @@
 
 void usage() {
   printf("\ntcpjack v%s\n", VERSION);
-  printf("Written By: Kris Nóva <nova@krisnova.net>\n\n");
-  printf("TCP hijack and instrumentation tool.\nTrace established TCP connections.\n");
+  printf("Written By: Kris Nóva <krisnova@krisnova.net>\n\n");
+  printf("TCP hijack and instrumentation tool.\nWork with established TCP connections.\n");
   printf("\n");
   printf("Usage: \n");
   printf("tcpjack [options]\n");
   printf("\n");
   printf("Options:\n");
   printf("-h, help           Display help and usage.\n");
-  printf("-l, list           List establish TCP connections.\n");
+  printf("-l, list           List established TCP connections.\n");
   printf("\n");
   exit(0);
 }
@@ -68,7 +68,9 @@ int main(int argc, char **argv) {
   clisetup(argc, argv);
   if (cfg.list == 1) {
     // List established TCP connections.
-    printf("List...\n");
+    struct TCPList tcplist = list();
+    print_list(tcplist);
+    return 0;
   }
   return 0;
 }

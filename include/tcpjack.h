@@ -1,5 +1,5 @@
 // =========================================================================== //
-//             Apache2.0 Copyright (c) 2022 Kris Nóva <kris@nivenly.com>       //
+//             Apache2.0 Copyright (c) 2022 Kris Nóva <krisnova@krisnova.net>       //
 //                                                                             //
 //                 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓                 //
 //                 ┃   ███╗   ██╗ ██████╗ ██╗   ██╗ █████╗   ┃                 //
@@ -27,13 +27,14 @@
  * A TCP connection which can be instrumented.
  */
 struct TCPConn {
-
+  char *name;
 };
 
 /**
  * A set of valid TCP connections which can be instrumented.
  */
 struct TCPList {
+  int numconns;
   struct TCPConn conns[TCP_LIST_SIZE];
 };
 
@@ -43,5 +44,12 @@ struct TCPList {
  * @return TCPList A structure containing a list of ESTABLISHED TCP connections
  */
 struct TCPList list();
+
+/**
+ * Print a TCP list using tcpjack default printing semantics.
+ *
+ * @param tcplist
+ */
+void print_list(struct TCPList tcplist);
 
 #endif
