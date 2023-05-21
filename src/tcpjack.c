@@ -73,13 +73,10 @@ int main(int argc, char **argv) {
     return 0;
   }
   if (argc == 2) {
-    // A user has passed in an argument, presumably an inode value.
     char *inode = argv[1];
-    //    int ino_i = atoi(inode);  // TODO error handling
-    //    unsigned long long ino =
-    //        (unsigned long long)(unsigned long)(unsigned int)ino_i;
-    struct ProcEntry pentry = proc_entry_from_ino(inode);
-    print_proc_entry(pentry);
+    ino_t ino = (unsigned long)(unsigned int)atoi(inode);
+    struct ProcEntry proc_entry = proc_entry_from_ino(ino);
+    print_proc_entry(proc_entry);
     return 0;
   }
   return 0;

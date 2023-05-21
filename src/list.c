@@ -61,24 +61,24 @@ struct TCPList list() {
     int retrnsmt;
     uid_t uid;
     int timeout;
-    unsigned long long
-        inode;  // st_ino from asm-generic/stat.h will not support 32 bit
-    fscanf(f, "%s %x:%x %x:%x %i %x:%x %x:%x %x %d %x %llu", sl,
+    ino_t ino;
+    fscanf(f, "%s %x:%x %x:%x %i %x:%x %x:%x %x %d %x %lu", sl,
            &local_addr_ipv4, &local_addr_port, &rem_addr_ipv4, &rem_addr_port,
            &st, &tx_queue, &rx_queue, &tr, &tm_when, &retrnsmt, &uid, &timeout,
-           &inode);
+           &ino);
     // Map TCP_ESTABLISHED conns to API
     if (st == TCP_ESTABLISHED) {
       struct in_addr local_ip;
       local_ip.s_addr = local_addr_ipv4;
       struct in_addr remote_ip;
       remote_ip.s_addr = rem_addr_ipv4;
-      struct TCPConn conn = {.inode = inode,
+      struct TCPConn conn = {.ino = ino,
                              .local_addr = local_ip,
                              .local_port = local_addr_port,
                              .remote_addr = remote_ip,
                              .remote_port = rem_addr_port,
-                             .uid = uid};
+                             .uid = uid,
+                             .proc_entry = proc_entry_from_ino(ino)};
       tcplist.conns[numconns] = conn;
       numconns++;
     }
@@ -96,8 +96,9 @@ struct TCPList list() {
 void print_list(struct TCPList tcplist) {
   for (int i = 0; i < tcplist.numconns; i++) {
     struct TCPConn conn = tcplist.conns[i];
-    printf("\x1B[32mTCP_ESTABLISHED\x1B[0m ");
-    printf("[\x1B[33m%llu\x1B[0m] ", conn.inode);
+    struct ProcEntry pentry = conn.proc_entry;
+    printf("\x1B[32m%16s (%#06d)\x1B[0m ", pentry.comm, pentry.pid);
+    printf("[\x1B[33m%lu\x1B[0m] ", conn.ino);
     printf("%s:%d ", inet_ntoa(conn.local_addr), conn.local_port);
     printf("%2s", " \x1B[33m->\x1B[0m ");
     printf("%s:%d ", inet_ntoa(conn.remote_addr), conn.remote_port);

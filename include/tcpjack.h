@@ -22,25 +22,7 @@
 #include "libnet.h"
 #include "pcap.h"
 
-/**
- * A TCP connection which can be instrumented.
- */
-struct TCPConn {
-  unsigned long long inode;  // TODO change to __ino_t
-  struct in_addr local_addr;
-  int local_port;
-  struct in_addr remote_addr;
-  int remote_port;
-  uid_t uid;
-};
 
-/**
- * A set of valid TCP connections which can be instrumented.
- */
-struct TCPList {
-  int numconns;
-  struct TCPConn conns[TCP_LIST_SIZE];
-};
 
 /**
  * List all TCP connections which can be instrumented.
@@ -66,18 +48,42 @@ struct ProcEntry {
 };
 
 /**
+ * A TCP connection which can be instrumented, also
+ * an associated ProcEntry for the corresponding process.
+ */
+struct TCPConn {
+  ino_t ino;
+  struct in_addr local_addr;
+  int local_port;
+  struct in_addr remote_addr;
+  int remote_port;
+  uid_t uid;
+  struct ProcEntry proc_entry;
+};
+
+/**
+ * A set of valid TCP connections which can be instrumented.
+ */
+struct TCPList {
+  int numconns;
+  struct TCPConn conns[TCP_LIST_SIZE];
+};
+
+/**
  * Will lookup a ProcEntry for a given inode (fd) found in /proc/net/tcp
  *
  * @param ino
  * @return
  */
-struct ProcEntry proc_entry_from_ino(char *ino);
+struct ProcEntry proc_entry_from_ino(ino_t ino);
 
 /**
  * Print a ProcEntry using tcpjack default printing semantics.
  *
- * @param pentry
+ * @param proc_entry
  */
-void print_proc_entry(struct ProcEntry pentry);
+void print_proc_entry(struct ProcEntry proc_entry);
+
+
 
 #endif

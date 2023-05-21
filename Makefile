@@ -24,7 +24,7 @@ LIBS         ?= -lnet -lpcap
 STYLE         = Google
 
 compile: ## Compile for the local architecture ⚙
-	@$(CC) $(CFLAGS) $(LDFLAGS) $(LIBS) -o $(TARGET) src/tcpjack.c src/list.c src/tcp_proc.c
+	@$(CC) $(CFLAGS) $(LDFLAGS) $(LIBS) -o $(TARGET) src/tcpjack.c src/list.c src/proc.c
 
 install: ## Install the program to /usr/bin 🎉
 	@echo "Installing..."
