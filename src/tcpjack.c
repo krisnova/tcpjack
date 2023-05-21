@@ -40,7 +40,8 @@ void usage() {
   printf("\n");
   printf("Options:\n");
   printf("-h, help           Display help and usage.\n");
-  printf("-l, list           List established TCP connections.\n");
+  printf("-l, list           List established TCP connections. List available inodes.\n");
+  printf("-t, trace  <ino>   Trace connection by inode.\n");
   printf("\n");
   exit(0);
 }
@@ -50,6 +51,7 @@ void usage() {
  */
 struct config {
   int list;
+  int trace;
 } cfg;
 
 /**
@@ -60,6 +62,7 @@ struct config {
  */
 void clisetup(int argc, char **argv) {
   cfg.list = 0;
+  cfg.trace = 0;
   for (int i = 0; i < argc; i++) {
     if (argv[i][0] == '-') {
       switch (argv[i][1]) {
@@ -68,6 +71,9 @@ void clisetup(int argc, char **argv) {
           break;
         case 'l':
           cfg.list = 1;
+          break;
+        case 't':
+          cfg.trace = 1;
           break;
       }
     }
@@ -85,12 +91,22 @@ int main(int argc, char **argv) {
     print_list(tcplist);
     return 0;
   }
-  if (argc == 2) {
-    char *inode = argv[1];
-    ino_t ino = (unsigned long)(unsigned int)atoi(inode);
+  if (cfg.trace == 1 && argc == 3) {
+    char *inode = argv[2];
+    char *term;
+    ino_t ino = (unsigned long)(unsigned int) strtol(inode, &term,  10);
+    if (errno != 0 || ino == 0) {
+      printf("Invalid or bad inode number.\n");
+      return -1;
+    }
     struct ProcEntry proc_entry = proc_entry_from_ino(ino);
+    if (proc_entry.pid == 0) {
+      printf("Unable to trace inode %lu. Unable to find process entry.\n", ino);
+      return -2;
+    }
     print_proc_entry(proc_entry);
     return 0;
   }
+  usage();
   return 0;
 }
