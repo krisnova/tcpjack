@@ -17,6 +17,7 @@
 #define TCP_LIST_SIZE 1024
 
 #include <arpa/inet.h>
+#include <dirent.h>
 
 #include "libnet.h"
 #include "pcap.h"
@@ -25,7 +26,7 @@
  * A TCP connection which can be instrumented.
  */
 struct TCPConn {
-  unsigned long long inode;
+  unsigned long long inode;  // TODO change to __ino_t
   struct in_addr local_addr;
   int local_port;
   struct in_addr remote_addr;
@@ -54,5 +55,29 @@ struct TCPList list();
  * @param tcplist
  */
 void print_list(struct TCPList tcplist);
+
+/**
+ * ProcEntry is a entry from procfs for a given process at runtime.
+ */
+struct ProcEntry {
+  pid_t pid;
+  char *comm;
+  int tcp_fd;
+};
+
+/**
+ * Will lookup a ProcEntry for a given inode (fd) found in /proc/net/tcp
+ *
+ * @param ino
+ * @return
+ */
+struct ProcEntry proc_entry_from_ino(char *ino);
+
+/**
+ * Print a ProcEntry using tcpjack default printing semantics.
+ *
+ * @param pentry
+ */
+void print_proc_entry(struct ProcEntry pentry);
 
 #endif

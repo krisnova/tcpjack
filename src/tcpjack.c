@@ -13,6 +13,7 @@
 #include "tcpjack.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 void usage() {
   printf("\ntcpjack v%s\n", VERSION);
@@ -22,7 +23,7 @@ void usage() {
       "connections.\n");
   printf("\n");
   printf("Usage: \n");
-  printf("tcpjack [options]\n");
+  printf("tcpjack [options] <inode>\n");
   printf("\n");
   printf("Options:\n");
   printf("-h, help           Display help and usage.\n");
@@ -69,6 +70,16 @@ int main(int argc, char **argv) {
     // List established TCP connections.
     struct TCPList tcplist = list();
     print_list(tcplist);
+    return 0;
+  }
+  if (argc == 2) {
+    // A user has passed in an argument, presumably an inode value.
+    char *inode = argv[1];
+    //    int ino_i = atoi(inode);  // TODO error handling
+    //    unsigned long long ino =
+    //        (unsigned long long)(unsigned long)(unsigned int)ino_i;
+    struct ProcEntry pentry = proc_entry_from_ino(inode);
+    print_proc_entry(pentry);
     return 0;
   }
   return 0;

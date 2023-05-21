@@ -63,7 +63,7 @@ struct TCPList list() {
     int timeout;
     unsigned long long
         inode;  // st_ino from asm-generic/stat.h will not support 32 bit
-    fscanf(f, "%s %x:%x %x:%x %x %d:%d %d:%d %d %d %d %llu", sl,
+    fscanf(f, "%s %x:%x %x:%x %i %x:%x %x:%x %x %d %x %llu", sl,
            &local_addr_ipv4, &local_addr_port, &rem_addr_ipv4, &rem_addr_port,
            &st, &tx_queue, &rx_queue, &tr, &tm_when, &retrnsmt, &uid, &timeout,
            &inode);
@@ -74,9 +74,9 @@ struct TCPList list() {
       struct in_addr remote_ip;
       remote_ip.s_addr = rem_addr_ipv4;
       struct TCPConn conn = {.inode = inode,
-                             .local_addr = local_addr_ipv4,
+                             .local_addr = local_ip,
                              .local_port = local_addr_port,
-                             .remote_addr = rem_addr_ipv4,
+                             .remote_addr = remote_ip,
                              .remote_port = rem_addr_port,
                              .uid = uid};
       tcplist.conns[numconns] = conn;
@@ -96,8 +96,11 @@ struct TCPList list() {
 void print_list(struct TCPList tcplist) {
   for (int i = 0; i < tcplist.numconns; i++) {
     struct TCPConn conn = tcplist.conns[i];
-    printf("TCP_ESTABLISHED %s:%d -> %s:%d [%llu]\n",
-           inet_ntoa(conn.local_addr), conn.local_port,
-           inet_ntoa(conn.remote_addr), conn.remote_port, conn.inode);
+    printf("\x1B[32mTCP_ESTABLISHED\x1B[0m ");
+    printf("[\x1B[33m%llu\x1B[0m] ", conn.inode);
+    printf("%s:%d ", inet_ntoa(conn.local_addr), conn.local_port);
+    printf("%2s", " \x1B[33m->\x1B[0m ");
+    printf("%s:%d ", inet_ntoa(conn.remote_addr), conn.remote_port);
+    printf("\n");
   }
 }
