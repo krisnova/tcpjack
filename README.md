@@ -9,6 +9,8 @@ Send trace metrics over raw TCP.
  1. List existing TCP connections we can hijack.
  2. Instrument an existing TCP connection.
 
+### TCP Jack default instrumentation
+
 # TCP Packet
 
 ```
