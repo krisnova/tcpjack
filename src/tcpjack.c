@@ -1,26 +1,31 @@
-// =========================================================================== //
-//             Apache2.0 Copyright (c) 2022 Kris Nóva <krisnova@krisnova.net>       //
+// ===========================================================================
+// //
+//             Apache2.0 Copyright (c) 2022 Kris Nóva <krisnova@krisnova.net> //
 //                                                                             //
-//                 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓                 //
-//                 ┃   ███╗   ██╗ ██████╗ ██╗   ██╗ █████╗   ┃                 //
-//                 ┃   ████╗  ██║██╔═████╗██║   ██║██╔══██╗  ┃                 //
-//                 ┃   ██╔██╗ ██║██║██╔██║██║   ██║███████║  ┃                 //
-//                 ┃   ██║╚██╗██║████╔╝██║╚██╗ ██╔╝██╔══██║  ┃                 //
-//                 ┃   ██║ ╚████║╚██████╔╝ ╚████╔╝ ██║  ██║  ┃                 //
-//                 ┃   ╚═╝  ╚═══╝ ╚═════╝   ╚═══╝  ╚═╝  ╚═╝  ┃                 //
-//                 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛                 //
+//                 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓ // ┃   ███╗   ██╗
+//                 ██████╗ ██╗   ██╗ █████╗   ┃                 // ┃   ████╗
+//                 ██║██╔═████╗██║   ██║██╔══██╗  ┃                 // ┃ ██╔██╗
+//                 ██║██║██╔██║██║   ██║███████║  ┃                 // ┃
+//                 ██║╚██╗██║████╔╝██║╚██╗ ██╔╝██╔══██║  ┃                 // ┃
+//                 ██║ ╚████║╚██████╔╝ ╚████╔╝ ██║  ██║  ┃                 // ┃
+//                 ╚═╝  ╚═══╝ ╚═════╝   ╚═══╝  ╚═╝  ╚═╝  ┃                 //
+//                 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ //
 //                                                                             //
-//                        This machine kills fascists.                         //
+//                        This machine kills fascists. //
 //                                                                             //
-// =========================================================================== //
+// ===========================================================================
+// //
+
+#include "tcpjack.h"
 
 #include <stdio.h>
-#include "tcpjack.h"
 
 void usage() {
   printf("\ntcpjack v%s\n", VERSION);
   printf("Written By: Kris Nóva <krisnova@krisnova.net>\n\n");
-  printf("TCP hijack and instrumentation tool.\nWork with established TCP connections.\n");
+  printf(
+      "TCP hijack and instrumentation tool.\nWork with established TCP "
+      "connections.\n");
   printf("\n");
   printf("Usage: \n");
   printf("tcpjack [options]\n");
@@ -50,12 +55,12 @@ void clisetup(int argc, char **argv) {
   for (int i = 0; i < argc; i++) {
     if (argv[i][0] == '-') {
       switch (argv[i][1]) {
-      case 'h':
-        usage();
-        break;
-      case 'l':
-        cfg.list = 1;
-        break;
+        case 'h':
+          usage();
+          break;
+        case 'l':
+          cfg.list = 1;
+          break;
       }
     }
   }

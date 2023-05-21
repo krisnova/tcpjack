@@ -35,8 +35,8 @@ clean: ## Clean your artifacts 🧼
 
 format: ## Format the code
 	@echo "  ->  Formatting code"
-	@clang-format -i -style=$(STYLE) src/*.c src/*.h
-	@clang-format -i -style=$(STYLE) include/*.c include/*.h
+	@clang-format -i -style=$(STYLE) ./src/*.c
+	@clang-format -i -style=$(STYLE)  ./include/*.h
 
 .PHONY: help
 help:  ## 🤔 Show help messages for make targets
