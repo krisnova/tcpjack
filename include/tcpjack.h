@@ -22,8 +22,6 @@
 #include "libnet.h"
 #include "pcap.h"
 
-
-
 /**
  * List all TCP connections which can be instrumented.
  *
@@ -84,6 +82,9 @@ struct ProcEntry proc_entry_from_ino(ino_t ino);
  */
 void print_proc_entry(struct ProcEntry proc_entry);
 
-
+/**
+ * Print the asciiheader and version number to stdout.
+ */
+void asciiheader();
 
 #endif

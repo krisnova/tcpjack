@@ -15,13 +15,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void usage() {
-  printf("\ntcpjack v%s\n", VERSION);
-  printf("Written By: Kris Nóva <krisnova@krisnova.net>\n\n");
-  printf(
-      "TCP hijack and instrumentation tool.\nWork with established TCP "
-      "connections.\n");
+void asciiheader() {
+  printf("\e[0;33m  _             _            _    \e[0m\n");
+  printf("\e[0;33m | |           (_)          | |   \e[0m\n");
+  printf("\e[0;33m | |_ ___ _ __  _  __ _  ___| | __\e[0m\n");
+  printf("\e[0;33m | __/ __| '_ \\| |/ _` |/ __| |/ /\e[0m\n");
+  printf("\e[0;33m | || (__| |_) | | (_| | (__|   < \e[0m\n");
+  printf("\e[0;33m  \\__\\___| .__/| |\\__,_|\\___|_|\\_\\ \e[0m\n");
+  printf("\e[0;33m         | |  _/ |                \e[0m\n");
+  printf("\e[0;33m         |_| |__/   \e[0mv%s              \n", VERSION);
   printf("\n");
+  printf("\e[1;34mAuthor\e[0m: \e[0;34mKris Nóva\e[0m <\e[0;32mkrisnova@krisnova.net\e[0m>\n");
+  printf("\n");
+  printf("TCP Hijack and instrumentation tool.\n");
+  printf("Use tcpjack to trace TCP connections and send\n");
+  printf("exciting payloads across already established TCP streams.\n");
+  printf("\n");
+}
+
+void usage() {
+  asciiheader();
   printf("Usage: \n");
   printf("tcpjack [options] <inode>\n");
   printf("\n");
