@@ -22,12 +22,18 @@
 
 #include "libnet.h"
 #include "pcap.h"
+#include <arpa/inet.h>
 
 /**
  * A TCP connection which can be instrumented.
  */
 struct TCPConn {
-  char *name;
+  unsigned long long inode;
+  struct in_addr local_addr;
+  int local_port;
+  struct in_addr rem_addr;
+  in rem_port;
+  uid_t uid;
 };
 
 /**
