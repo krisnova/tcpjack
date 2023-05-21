@@ -15,6 +15,7 @@
 
 #define VERSION "1.0.0"
 #define TCP_LIST_SIZE 1024
+#define TRACE_HOP_MAX 32
 
 #include <arpa/inet.h>
 #include <dirent.h>
@@ -42,7 +43,6 @@ void print_list(struct TCPList tcplist);
 struct ProcEntry {
   pid_t pid;
   char *comm;
-  int tcp_fd;
 };
 
 /**
@@ -66,6 +66,23 @@ struct TCPList {
   int numconns;
   struct TCPConn conns[TCP_LIST_SIZE];
 };
+
+struct Hop {
+  //
+};
+
+struct TraceReport {
+  pid_t pid;
+  ino_t ino;
+  struct ProcEntry proc_entry;
+  int numhops;
+  struct Hop hops[TRACE_HOP_MAX];
+};
+
+struct TraceReport trace_ino(ino_t ino);
+struct TraceReport trace_pid(pid_t pid);
+struct TraceReport trace_proc_entry(struct ProcEntry proc_entry);
+
 
 /**
  * Will lookup a ProcEntry for a given inode (fd) found in /proc/net/tcp

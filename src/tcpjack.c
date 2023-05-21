@@ -101,10 +101,10 @@ int main(int argc, char **argv) {
     }
     struct ProcEntry proc_entry = proc_entry_from_ino(ino);
     if (proc_entry.pid == 0) {
-      printf("Unable to trace inode %lu. Unable to find process entry.\n", ino);
+      printf("Unable to trace inode %lu. Unable to find process entry for inode.\n", ino);
       return -2;
     }
-    print_proc_entry(proc_entry);
+    // Trace here
     return 0;
   }
   usage();

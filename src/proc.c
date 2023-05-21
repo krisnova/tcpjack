@@ -17,6 +17,26 @@
 
 #include "tcpjack.h"
 
+struct ProcEntry proc_entry_from_pid(pid_t pid) {
+  struct ProcEntry proc_entry = {
+      .comm = "------",
+      .pid = 0,
+  };
+  char *comm = malloc(1024);
+  memset(comm, 0, 1024);
+  char proc_comm_path[64];
+  snprintf(proc_comm_path, 64, "/proc/%d/comm", pid);
+  FILE *comm_f = fopen(proc_comm_path, "r");
+  if (comm_f == NULL) return proc_entry;
+  while (fgets(comm, 1024, comm_f)) {
+    comm[strcspn(comm, "\n")] = 0;
+    struct ProcEntry proc_entry = {
+        .pid = pid, .comm = comm};
+    return proc_entry;
+  }
+  return proc_entry;
+}
+
 struct ProcEntry proc_entry_from_ino(ino_t ino) {
   struct ProcEntry proc_entry = {
       .comm = "------",
@@ -44,19 +64,7 @@ struct ProcEntry proc_entry_from_ino(ino_t ino) {
       if (strcmp(fd_content, needle) == 0) {
         // Found the process
         pid_t pid = atoi(procdentry->d_name);
-        char *comm = malloc(1024);
-        memset(comm, 0, 1024);
-        char proc_comm_path[64];
-        snprintf(proc_comm_path, 64, "/proc/%s/comm", procdentry->d_name);
-        FILE *comm_f = fopen(proc_comm_path, "r");
-        if (comm_f == NULL) return proc_entry;
-        while (fgets(comm, 1024, comm_f)) {
-          comm[strcspn(comm, "\n")] = 0;
-          int tcp_fd = atoi(procdentry->d_name);
-          struct ProcEntry found_proc_entry = {
-              .pid = pid, .comm = comm, .tcp_fd = tcp_fd};
-          return found_proc_entry;
-        }
+        return proc_entry_from_pid(pid);
       }
     }
   }
@@ -64,6 +72,7 @@ struct ProcEntry proc_entry_from_ino(ino_t ino) {
 }
 
 void print_proc_entry(struct ProcEntry proc_entry) {
-  printf("%d %s", proc_entry.pid, proc_entry.comm);
+  // TODO Clean this up
+  printf("%d %s\n", proc_entry.pid, proc_entry.comm);
   free(proc_entry.comm);
 }
