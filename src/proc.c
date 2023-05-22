@@ -74,6 +74,40 @@ struct ProcEntry proc_entry_from_ino(ino_t ino) {
   return proc_entry;
 }
 
+int fd_from_ino(ino_t ino) {
+  struct dirent *procdentry;  // Procfs
+  char needle[64] = "";
+  snprintf(needle, 64, "socket:[%lu]", ino);
+  DIR *procdp = opendir("/proc");
+  if (procdp == NULL) return -1;
+  while ((procdentry = readdir(procdp)) != NULL) {
+    struct dirent *procsubdentry;  // Procfs Subdir
+    char proc_dir[64];
+    snprintf(proc_dir, 64, "/proc/%s/fd", procdentry->d_name);
+    DIR *procsubdp = opendir(proc_dir);
+    if (procsubdp == NULL) {
+      continue;
+    }
+    while ((procsubdentry = readdir(procsubdp)) != NULL) {
+      char proc_fd_path[64];
+      char fd_content[64] = "";
+      snprintf(proc_fd_path, 64, "/proc/%s/fd/%s", procdentry->d_name,
+               procsubdentry->d_name);
+      readlink(proc_fd_path, fd_content, 64);
+      if (strcmp(fd_content, needle) == 0) {
+        // Found it!
+        closedir(procdp);
+        closedir(procsubdp);
+        // TODO Working here on file descriptor hijacking
+        return atoi(procsubdentry->d_name);
+      }
+    }
+    closedir(procsubdp);
+  }
+  closedir(procdp);
+  return -10;
+}
+
 void print_proc_entry(struct ProcEntry proc_entry) {
   // TODO Clean this up
   printf("%d %s\n", proc_entry.pid, proc_entry.comm);

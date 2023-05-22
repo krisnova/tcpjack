@@ -45,6 +45,7 @@ void usage() {
   printf("-l, list           List established TCP connections and inodes.\n");
   printf("-t, trace  <ino>   Trace (layer 3) connection by inode.\n");
   printf("-p, pid    <pid>   Trace (layer 3) connection by pid.\n");
+  printf("-j, jack   <ino>   Send data to existing TCP connection.\n");
   printf("\n");
   exit(0);
 }
@@ -56,6 +57,7 @@ struct config {
   int list;
   int trace;
   int pid;
+  int jack;
 } cfg;
 
 /**
@@ -68,6 +70,7 @@ void clisetup(int argc, char **argv) {
   cfg.list = 0;
   cfg.trace = 0;
   cfg.pid = 0;
+  cfg.jack = 0;
   for (int i = 0; i < argc; i++) {
     if (argv[i][0] == '-') {
       switch (argv[i][1]) {
@@ -82,6 +85,9 @@ void clisetup(int argc, char **argv) {
           break;
         case 'p':
           cfg.pid = 1;
+          break;
+        case 'j':
+          cfg.jack = 1;
           break;
       }
     }
@@ -112,10 +118,8 @@ int main(int argc, char **argv) {
     }
     struct ProcEntry proc_entry = proc_entry_from_ino(ino);
     if (proc_entry.pid == 0) {
-      printf(
-          "Unable to trace inode %lu. Unable to find process entry for "
-          "inode.\n",
-          ino);
+      printf("Unable to trace inode %lu. Error finding proc entry for inode.\n",
+             ino);
       return -2;
     }
     struct TraceReport tps_report = trace_proc_entry(proc_entry);
@@ -143,6 +147,36 @@ int main(int argc, char **argv) {
     return 0;
   }
 
+  // -j jack <ino>
+  if (cfg.jack == 1 && argc == 3) {
+    char *inode = argv[2];
+    char *term;
+    ino_t ino = (unsigned long)(unsigned int)strtol(inode, &term, 10);
+    if (errno != 0 || ino == 0) {
+      printf("Invalid or bad inode number.\n");
+      return -1;
+    }
+    struct ProcEntry proc_entry = proc_entry_from_ino(ino);
+    if (proc_entry.pid == 0) {
+      printf("Unable to trace inode %lu. Error finding proc entry for inode.\n",
+             ino);
+      return -2;
+    }
+    int fd = fd_from_ino(ino);
+    if (fd < 0){
+      printf("Error hijacking file descriptor for established TCP connection! %d %d\n", fd, errno);
+      return 0;
+    }
+    char ch;
+    while (read(STDIN_FILENO, &ch, 1) > 0) {
+      int z = write(fd, &ch, 1);
+      if (z != 1) {
+          printf("Error writing to hijacked connection! %d\n", errno);
+          return -7;
+      }
+    }
+    return 0;
+  }
   // Default case
   usage();
   return 0;

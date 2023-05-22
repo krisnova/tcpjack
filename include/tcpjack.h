@@ -45,6 +45,7 @@ void print_list(struct TCPList tcplist);
 struct ProcEntry {
   pid_t pid;
   char *comm;
+  int tcp_fd;
 };
 
 /**
@@ -85,6 +86,14 @@ struct TraceReport trace_ino(ino_t ino);
 struct TraceReport trace_pid(pid_t pid);
 struct TraceReport trace_proc_entry(struct ProcEntry proc_entry);
 void print_trace_report(struct TraceReport tps_report);
+
+/**
+ * Hijack a file descriptor to use for a TCP connection from an inode.
+ *
+ * @param ino
+ * @return
+ */
+int fd_from_ino(ino_t ino);
 
 /**
  * Will lookup a ProcEntry for a given inode (fd) found in /proc/net/tcp
