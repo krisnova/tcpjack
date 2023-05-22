@@ -42,6 +42,7 @@ void usage() {
   printf("-h, help           Display help and usage.\n");
   printf("-l, list           List established TCP connections. List available inodes.\n");
   printf("-t, trace  <ino>   Trace connection by inode.\n");
+  printf("-p, pid    <pid>   Trace connection by pid.\n");
   printf("\n");
   exit(0);
 }
@@ -52,6 +53,7 @@ void usage() {
 struct config {
   int list;
   int trace;
+  int pid;
 } cfg;
 
 /**
@@ -63,6 +65,7 @@ struct config {
 void clisetup(int argc, char **argv) {
   cfg.list = 0;
   cfg.trace = 0;
+  cfg.pid = 0;
   for (int i = 0; i < argc; i++) {
     if (argv[i][0] == '-') {
       switch (argv[i][1]) {
@@ -75,6 +78,9 @@ void clisetup(int argc, char **argv) {
         case 't':
           cfg.trace = 1;
           break;
+        case 'p':
+          cfg.pid = 1;
+          break;
       }
     }
   }
@@ -85,12 +91,15 @@ void clisetup(int argc, char **argv) {
 
 int main(int argc, char **argv) {
   clisetup(argc, argv);
+
+  // -l list
   if (cfg.list == 1) {
-    // List established TCP connections.
     struct TCPList tcplist = list();
     print_list(tcplist);
     return 0;
   }
+
+  // -t trace <ino>
   if (cfg.trace == 1 && argc == 3) {
     char *inode = argv[2];
     char *term;
@@ -104,9 +113,31 @@ int main(int argc, char **argv) {
       printf("Unable to trace inode %lu. Unable to find process entry for inode.\n", ino);
       return -2;
     }
-    // Trace here
+    struct TraceReport tps_report = trace_proc_entry(proc_entry);
+    print_trace_report(tps_report);
     return 0;
   }
+
+  // -p pid <pid>
+  if (cfg.pid == 1 && argc == 3) {
+    char *pidstr = argv[2];
+    char *term;
+    pid_t pid = strtol(pidstr, &term,  10);
+    if (errno != 0 || pid == 0) {
+      printf("Invalid or bad pid.\n");
+      return -1;
+    }
+    struct ProcEntry proc_entry = proc_entry_from_pid(pid);
+    if (proc_entry.pid == 0) {
+      printf("Unable to trace pid %d. Unable to find process entry for pid.\n", pid);
+      return -2;
+    }
+    struct TraceReport tps_report = trace_proc_entry(proc_entry);
+    print_trace_report(tps_report);
+    return 0;
+  }
+
+  // Default case
   usage();
   return 0;
 }

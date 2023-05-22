@@ -82,6 +82,7 @@ struct TraceReport {
 struct TraceReport trace_ino(ino_t ino);
 struct TraceReport trace_pid(pid_t pid);
 struct TraceReport trace_proc_entry(struct ProcEntry proc_entry);
+void print_trace_report(struct TraceReport tps_report);
 
 
 /**
@@ -91,6 +92,14 @@ struct TraceReport trace_proc_entry(struct ProcEntry proc_entry);
  * @return
  */
 struct ProcEntry proc_entry_from_ino(ino_t ino);
+
+/**
+ * Will lookup a ProcEntry for a give pid.
+ *
+ * @param pid
+ * @return
+ */
+struct ProcEntry proc_entry_from_pid(pid_t pid);
 
 /**
  * Print a ProcEntry using tcpjack default printing semantics.
