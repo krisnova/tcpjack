@@ -1,36 +1,29 @@
 # TCP Jack
 
-Hijack and instrument an established TCP connection with trace and performance metadata.
+Hijack established TCP connections.
 
-Send trace metrics over raw TCP.
+Send data over existing TCP connections.
+Perform analysis of routing topology using established TCP connections.
 
-### Strategy 
 
- 1. List existing TCP connections we can hijack.
- 2. Instrument an existing TCP connection.
+### Example Hijacking a TCP connection
 
-### TCP Jack default instrumentation
+The following example shows how to hijack an existing TCP connection using the `-j` flag.
+`tcpjack` will use `ptrace` to briefly interrupt the client with the specified inode.
+During the interruption, `tcpjack` will steal the established connection's open file descriptor.
+After the file descriptor has been copied, the process resumes normal processing.
+The newly copied file descriptor is used to create a spoofed client over the same connection as the original.
 
-# TCP Packet
+```bash
+# Terminal 1
+ncat -l 9074
 
-```
-   0                   1                   2                   3   
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |          Source Port          |       Destination Port        |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                        Sequence Number                        |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                    Acknowledgment Number                      |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |  Data |           |U|A|P|R|S|F|                               |
-   | Offset| Reserved  |R|C|S|S|Y|I|            Window             |
-   |       |           |G|K|H|T|N|N|                               |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |           Checksum            |         Urgent Pointer        |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                    Options                    |    Padding    |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                             data                              |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+# Terminal 2 
+ncat localhost 9074
+
+# Terminal 3 
+tcpjack -l | grep ncat 
+  ncat   9321  72294 127.0.0.1:48434 ->  127.0.0.1:9074 
+  ncat   9237  76747  127.0.0.1:9074 -> 127.0.0.1:48434 
+echo "PAYLOAD" | sudo tcpjack -j 72294
 ```
