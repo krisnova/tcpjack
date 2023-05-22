@@ -1,13 +1,13 @@
 /******************************************************************************\
- *                                                                            *
- *                    ███╗   ██╗ ██████╗ ██╗   ██╗ █████╗                     *
- *                    ████╗  ██║██╔═══██╗██║   ██║██╔══██╗                    *
- *                    ██╔██╗ ██║██║   ██║██║   ██║███████║                    *
- *                    ██║╚██╗██║██║   ██║╚██╗ ██╔╝██╔══██║                    *
- *                    ██║ ╚████║╚██████╔╝ ╚████╔╝ ██║  ██║                    *
- *                    ╚═╝  ╚═══╝ ╚═════╝   ╚═══╝  ╚═╝  ╚═╝                    *
- *              Written By: Kris Nóva    <admin@krisnova.net>                 *
- *                                                                            *
+*                                                                            *
+*                    ███╗   ██╗ ██████╗ ██╗   ██╗ █████╗                     *
+*                    ████╗  ██║██╔═══██╗██║   ██║██╔══██╗                    *
+*                    ██╔██╗ ██║██║   ██║██║   ██║███████║                    *
+*                    ██║╚██╗██║██║   ██║╚██╗ ██╔╝██╔══██║                    *
+*                    ██║ ╚████║╚██████╔╝ ╚████╔╝ ██║  ██║                    *
+*                    ╚═╝  ╚═══╝ ╚═════╝   ╚═══╝  ╚═╝  ╚═╝                    *
+*              Written By: Kris Nóva    <admin@krisnova.net>                 *
+*                                                                            *
 \******************************************************************************/
 
 #include <arpa/inet.h>
@@ -94,8 +94,8 @@ struct TCPList list() {
  * @param tcplist
  */
 void print_list(struct TCPList tcplist) {
-  printf("\e[1;31m%16s %6s %6s %15s %23s\x1B[0m\n",
-         "process", "pid", "inode", "source address", "destination address");
+  printf("\e[1;31m%16s %6s %6s %15s %23s\x1B[0m\n", "process", "pid", "inode",
+         "source address", "destination address");
   for (int i = 0; i < tcplist.numconns; i++) {
     struct TCPConn conn = tcplist.conns[i];
     struct ProcEntry pentry = conn.proc_entry;

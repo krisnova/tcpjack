@@ -86,7 +86,6 @@ struct TraceReport trace_pid(pid_t pid);
 struct TraceReport trace_proc_entry(struct ProcEntry proc_entry);
 void print_trace_report(struct TraceReport tps_report);
 
-
 /**
  * Will lookup a ProcEntry for a given inode (fd) found in /proc/net/tcp
  *

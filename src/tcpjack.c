@@ -25,7 +25,9 @@ void asciiheader() {
   printf("\e[0;33m         | |  _/ |                \e[0m\n");
   printf("\e[0;33m         |_| |__/   \e[0mv%s              \n", VERSION);
   printf("\n");
-  printf("\e[1;34mAuthor\e[0m: \e[0;34mKris Nóva\e[0m <\e[0;32mkrisnova@krisnova.net\e[0m>\n");
+  printf(
+      "\e[1;34mAuthor\e[0m: \e[0;34mKris Nóva\e[0m "
+      "<\e[0;32mkrisnova@krisnova.net\e[0m>\n");
   printf("\n");
   printf("TCP Hijack and instrumentation tool.\n");
   printf("Use tcpjack to trace TCP connections and send\n");
@@ -40,7 +42,9 @@ void usage() {
   printf("\n");
   printf("Options:\n");
   printf("-h, help           Display help and usage.\n");
-  printf("-l, list           List established TCP connections. List available inodes.\n");
+  printf(
+      "-l, list           List established TCP connections. List available "
+      "inodes.\n");
   printf("-t, trace  <ino>   Trace (layer 3) connection by inode.\n");
   printf("-p, pid    <pid>   Trace (layer 3) connection by pid.\n");
   printf("\n");
@@ -103,14 +107,17 @@ int main(int argc, char **argv) {
   if (cfg.trace == 1 && argc == 3) {
     char *inode = argv[2];
     char *term;
-    ino_t ino = (unsigned long)(unsigned int) strtol(inode, &term,  10);
+    ino_t ino = (unsigned long)(unsigned int)strtol(inode, &term, 10);
     if (errno != 0 || ino == 0) {
       printf("Invalid or bad inode number.\n");
       return -1;
     }
     struct ProcEntry proc_entry = proc_entry_from_ino(ino);
     if (proc_entry.pid == 0) {
-      printf("Unable to trace inode %lu. Unable to find process entry for inode.\n", ino);
+      printf(
+          "Unable to trace inode %lu. Unable to find process entry for "
+          "inode.\n",
+          ino);
       return -2;
     }
     struct TraceReport tps_report = trace_proc_entry(proc_entry);
@@ -122,14 +129,15 @@ int main(int argc, char **argv) {
   if (cfg.pid == 1 && argc == 3) {
     char *pidstr = argv[2];
     char *term;
-    pid_t pid = strtol(pidstr, &term,  10);
+    pid_t pid = strtol(pidstr, &term, 10);
     if (errno != 0 || pid == 0) {
       printf("Invalid or bad pid.\n");
       return -1;
     }
     struct ProcEntry proc_entry = proc_entry_from_pid(pid);
     if (proc_entry.pid == 0) {
-      printf("Unable to trace pid %d. Unable to find process entry for pid.\n", pid);
+      printf("Unable to trace pid %d. Unable to find process entry for pid.\n",
+             pid);
       return -2;
     }
     struct TraceReport tps_report = trace_proc_entry(proc_entry);
