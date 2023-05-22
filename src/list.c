@@ -95,16 +95,20 @@ struct TCPList list() {
  * @param tcplist
  */
 void print_list(struct TCPList tcplist) {
-  printf("\e[1;31m%16s %6s %6s %15s %23s\x1B[0m\n", "process", "pid", "inode",
+  printf("\e[1;31m%8s %6s %6s %14s %23s\x1B[0m\n", "process", "pid", "inode",
          "source address", "destination address");
   for (int i = 0; i < tcplist.numconns; i++) {
     struct TCPConn conn = tcplist.conns[i];
     struct ProcEntry pentry = conn.proc_entry;
-    printf("\x1B[32m%16s %6d\x1B[0m ", pentry.comm, pentry.pid);
+    char local[48];
+    char remote[48];
+    sprintf(local, "%s:%d", inet_ntoa(conn.local_addr), conn.local_port);
+    sprintf(remote, "%s:%d", inet_ntoa(conn.remote_addr), conn.remote_port);
+    printf("\x1B[32m%8s %6d\x1B[0m ", pentry.comm, pentry.pid);
     printf("\x1B[33m%6lu\x1B[0m ", conn.ino);
-    printf("%10s:%d ", inet_ntoa(conn.local_addr), conn.local_port);
-    printf("%2s", "\x1B[33m->\x1B[0m ");
-    printf("%10s:%d ", inet_ntoa(conn.remote_addr), conn.remote_port);
+    printf("%12s ", local);
+    printf("%s", "\x1B[33m->\x1B[0m ");
+    printf("%12s ", remote);
     printf("\n");
   }
 }
