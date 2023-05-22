@@ -63,10 +63,14 @@ struct ProcEntry proc_entry_from_ino(ino_t ino) {
       if (strcmp(fd_content, needle) == 0) {
         // Found the process
         pid_t pid = atoi(procdentry->d_name);
+        closedir(procdp);
+        closedir(procsubdp);
         return proc_entry_from_pid(pid);
       }
     }
+    closedir(procsubdp);
   }
+  closedir(procdp);
   return proc_entry;
 }
 

@@ -42,9 +42,7 @@ void usage() {
   printf("\n");
   printf("Options:\n");
   printf("-h, help           Display help and usage.\n");
-  printf(
-      "-l, list           List established TCP connections. List available "
-      "inodes.\n");
+  printf("-l, list           List established TCP connections and inodes.\n");
   printf("-t, trace  <ino>   Trace (layer 3) connection by inode.\n");
   printf("-p, pid    <pid>   Trace (layer 3) connection by pid.\n");
   printf("\n");

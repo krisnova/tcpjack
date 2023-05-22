@@ -72,13 +72,14 @@ struct TCPList list() {
       local_ip.s_addr = local_addr_ipv4;
       struct in_addr remote_ip;
       remote_ip.s_addr = rem_addr_ipv4;
+      struct ProcEntry proc_entry = proc_entry_from_ino(ino);
       struct TCPConn conn = {.ino = ino,
                              .local_addr = local_ip,
                              .local_port = local_addr_port,
                              .remote_addr = remote_ip,
                              .remote_port = rem_addr_port,
                              .uid = uid,
-                             .proc_entry = proc_entry_from_ino(ino)};
+                             .proc_entry = proc_entry};
       tcplist.conns[numconns] = conn;
       numconns++;
     }
