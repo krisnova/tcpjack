@@ -14,6 +14,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 
 #include "tcpjack.h"
 
@@ -96,10 +98,16 @@ int fd_from_ino(ino_t ino) {
       readlink(proc_fd_path, fd_content, 64);
       if (strcmp(fd_content, needle) == 0) {
         // Found it!
+        pid_t pid = atoi(procdentry->d_name);
         closedir(procdp);
         closedir(procsubdp);
         // TODO Working here on file descriptor hijacking
-        return atoi(procsubdentry->d_name);
+
+        // int syscall(SYS_pidfd_open, pid_t pid, unsigned int flags);
+        int pidfd = syscall(SYS_pidfd_open, pid, 0);
+
+        // int syscall(SYS_pidfd_getfd, int pidfd, int targetfd, unsigned int flags);
+        return syscall(SYS_pidfd_getfd, pidfd, atoi(procsubdentry->d_name), 0);
       }
     }
     closedir(procsubdp);
