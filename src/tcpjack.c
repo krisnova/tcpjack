@@ -164,6 +164,10 @@ int main(int argc, char **argv) {
     }
     int fd = fd_from_ino(ino);
     if (fd < 0){
+      if (errno == 1) {
+          printf("Permission denied.\n");
+          return -99;
+      }
       printf("Error hijacking file descriptor for established TCP connection! %d %d\n", fd, errno);
       return 0;
     }
