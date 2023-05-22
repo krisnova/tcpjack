@@ -16,6 +16,8 @@
 #define VERSION "1.0.0"
 #define TCP_LIST_SIZE 1024
 #define TRACE_HOP_MAX 32
+#define TRACE_SPOOF_COUNT 32
+#define TIME_MS 1000
 
 #include <arpa/inet.h>
 #include <dirent.h>
