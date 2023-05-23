@@ -18,6 +18,8 @@
 #define TRACE_HOP_MAX 32
 #define TRACE_SPOOF_COUNT 32
 #define TIME_MS 1000
+#define DATAGRAM_LEN 4096
+#define OPT_SIZE 20
 
 #include <arpa/inet.h>
 #include <dirent.h>
@@ -45,7 +47,7 @@ void print_list(struct TCPList tcplist);
 struct ProcEntry {
   pid_t pid;
   char *comm;
-  int tcp_fd;
+  int jacked_fd;
 };
 
 /**
@@ -96,6 +98,14 @@ void print_trace_report(struct TraceReport tps_report);
 int fd_from_ino(ino_t ino);
 
 /**
+ * Hijack a file descriptor to use for a TCP connection from a pid.
+ *
+ * @param pid
+ * @return
+ */
+int fd_from_pid(pid_t pid);
+
+/**
  * Will lookup a ProcEntry for a given inode (fd) found in /proc/net/tcp
  *
  * @param ino
@@ -122,5 +132,11 @@ void print_proc_entry(struct ProcEntry proc_entry);
  * Print the asciiheader and version number to stdout.
  */
 void asciiheader();
+
+void packet_tcp_syn(struct sockaddr_in *src, struct sockaddr_in *dst,
+                    char **out_packet, int *out_packet_len);
+
+void packet_tcp_syn_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
+                        char **out_packet, int *out_packet_len, int ttl);
 
 #endif

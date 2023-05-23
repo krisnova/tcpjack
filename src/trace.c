@@ -10,10 +10,16 @@
 *                                                                             *
 \******************************************************************************/
 
+#include <errno.h>
 #include <pthread.h>
 #include <unistd.h>
 
 #include "tcpjack.h"
+
+struct TraceEmitionContext {
+  int count;
+  int jacked_fd;
+};
 
 /**
  * Wrapper function for trace_proc_entry
@@ -37,12 +43,29 @@ struct TraceReport trace_pid(pid_t pid) {
   return trace_proc_entry(proc_entry);
 }
 
-void *trace_spoof(void *vc) {
-  int *cp = (int *)vc;
-  int c = *cp;
-  for (int i = 0; i <= c; i++) {
-    // Send TTL packet here
-    usleep(TIME_MS * 100);  // 100ms
+/**
+ * Emit TCP SYN packets to find the route path.
+ *
+ * @param vctx
+ * @return
+ */
+void *emit_trace_packets(void *vctx) {
+  struct TraceEmitionContext *ctxp = (struct TraceEmitionContext *)vctx;
+  struct TraceEmitionContext ctx = *ctxp;
+  int ttl = ctx.count;
+  for (int i = 0; i <= ctx.count; i++) {
+    char *packet;
+    struct sockaddr_in saddr = {}; // TODO pull from proc
+    struct sockaddr_in daddr = {}; // TODO pull from proc
+    int packet_len;
+    packet_tcp_syn_ttl(&saddr, &daddr, &packet, &packet_len, ttl--);
+    if (sendto(ctx.jacked_fd, packet, packet_len, 0, (struct sockaddr *)&daddr,
+               sizeof(struct sockaddr)) != 0) {
+      printf("Sent packet=%d, ttl=%d\n", i, ttl);
+    } else {
+      printf("Error! Unable to send promiscuous TCP SYN packet: %d\n", errno);
+    }
+    usleep(TIME_MS * 100); // 100ms
   }
   return NULL;
 }
@@ -64,8 +87,13 @@ struct TraceReport trace_proc_entry(struct ProcEntry proc_entry) {
 
   // Begin to send spoofed packets
   pthread_t th;
-  int c = TRACE_SPOOF_COUNT;
-  pthread_create(&th, NULL, trace_spoof, (void *)&c);
+
+  // Build our trace context
+  struct TraceEmitionContext ctx = {.count = TRACE_SPOOF_COUNT,
+                                    .jacked_fd = proc_entry.jacked_fd};
+
+  // Spawn the emit thread
+  pthread_create(&th, NULL, emit_trace_packets, (void *)&ctx);
 
   // Loop and sniff responses
   pthread_join(th, NULL);

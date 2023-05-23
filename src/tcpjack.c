@@ -25,9 +25,8 @@ void asciiheader() {
   printf("\e[0;33m         | |  _/ |                \e[0m\n");
   printf("\e[0;33m         |_| |__/   \e[0mv%s              \n", VERSION);
   printf("\n");
-  printf(
-      "\e[1;34mAuthor\e[0m: \e[0;34mKris Nóva\e[0m "
-      "<\e[0;32mkrisnova@krisnova.net\e[0m>\n");
+  printf("\e[1;34mAuthor\e[0m: \e[0;34mKris Nóva\e[0m "
+         "<\e[0;32mkrisnova@krisnova.net\e[0m>\n");
   printf("\n");
   printf("TCP Hijack and instrumentation tool.\n");
   printf("Use tcpjack to trace TCP connections and send\n");
@@ -74,21 +73,21 @@ void clisetup(int argc, char **argv) {
   for (int i = 0; i < argc; i++) {
     if (argv[i][0] == '-') {
       switch (argv[i][1]) {
-        case 'h':
-          usage();
-          break;
-        case 'l':
-          cfg.list = 1;
-          break;
-        case 't':
-          cfg.trace = 1;
-          break;
-        case 'p':
-          cfg.pid = 1;
-          break;
-        case 'j':
-          cfg.jack = 1;
-          break;
+      case 'h':
+        usage();
+        break;
+      case 'l':
+        cfg.list = 1;
+        break;
+      case 't':
+        cfg.trace = 1;
+        break;
+      case 'p':
+        cfg.pid = 1;
+        break;
+      case 'j':
+        cfg.jack = 1;
+        break;
       }
     }
   }
@@ -163,20 +162,23 @@ int main(int argc, char **argv) {
       return -2;
     }
     int fd = fd_from_ino(ino);
-    if (fd < 0){
+    if (fd < 0) {
       if (errno == 1) {
-          printf("Permission denied.\n");
-          return -99;
+        printf("Permission denied.\n");
+        return -99;
       }
-      printf("Error hijacking file descriptor for established TCP connection! %d %d\n", fd, errno);
+      printf(
+          "Error hijacking file descriptor for established TCP connection! %d "
+          "%d\n",
+          fd, errno);
       return 0;
     }
     char ch;
     while (read(STDIN_FILENO, &ch, 1) > 0) {
       int z = write(fd, &ch, 1);
       if (z != 1) {
-          printf("Error writing to hijacked connection! %d\n", errno);
-          return -7;
+        printf("Error writing to hijacked connection! %d\n", errno);
+        return -7;
       }
     }
     return 0;
