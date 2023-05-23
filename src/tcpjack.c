@@ -162,7 +162,7 @@ int main(int argc, char **argv) {
              ino);
       return -2;
     }
-    int fd = fd_from_ino(ino);
+    int fd = proc_entry.jacked_fd;
     if (fd < 0) {
       if (errno == 1) {
         printf("Permission denied.\n");
