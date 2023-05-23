@@ -52,7 +52,7 @@ struct TraceReport trace_pid(pid_t pid) {
 void *emit_trace_packets(void *vctx) {
   struct TraceEmitionContext *ctxp = (struct TraceEmitionContext *)vctx;
   struct TraceEmitionContext ctx = *ctxp;
-  int ttl = ctx.count;
+  int ttl = ctx.count + 1;
   for (int i = 0; i <= ctx.count; i++) {
     char *packet;
     struct sockaddr_in saddr = {};  // TODO pull from proc
