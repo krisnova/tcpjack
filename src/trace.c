@@ -55,8 +55,8 @@ void *emit_trace_packets(void *vctx) {
   int ttl = ctx.count;
   for (int i = 0; i <= ctx.count; i++) {
     char *packet;
-    struct sockaddr_in saddr = {}; // TODO pull from proc
-    struct sockaddr_in daddr = {}; // TODO pull from proc
+    struct sockaddr_in saddr = {};  // TODO pull from proc
+    struct sockaddr_in daddr = {};  // TODO pull from proc
     int packet_len;
     packet_tcp_syn_ttl(&saddr, &daddr, &packet, &packet_len, ttl--);
     if (sendto(ctx.jacked_fd, packet, packet_len, 0, (struct sockaddr *)&daddr,
@@ -65,7 +65,7 @@ void *emit_trace_packets(void *vctx) {
     } else {
       printf("Error! Unable to send promiscuous TCP SYN packet: %d\n", errno);
     }
-    usleep(TIME_MS * 100); // 100ms
+    usleep(TIME_MS * 100);  // 100ms
   }
   return NULL;
 }

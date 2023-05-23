@@ -29,8 +29,7 @@ struct ProcEntry proc_entry_from_pid(pid_t pid) {
   char proc_comm_path[64];
   snprintf(proc_comm_path, 64, "/proc/%d/comm", pid);
   FILE *comm_f = fopen(proc_comm_path, "r");
-  if (comm_f == NULL)
-    return proc_entry;
+  if (comm_f == NULL) return proc_entry;
   while (fgets(comm, 1024, comm_f)) {
     comm[strcspn(comm, "\n")] = 0;
     struct ProcEntry proc_entry = {
@@ -46,14 +45,13 @@ struct ProcEntry proc_entry_from_ino(ino_t ino) {
       .pid = 0,
       .jacked_fd = 0,
   };
-  struct dirent *procdentry; // Procfs
+  struct dirent *procdentry;  // Procfs
   char needle[64] = "";
   snprintf(needle, 64, "socket:[%lu]", ino);
   DIR *procdp = opendir("/proc");
-  if (procdp == NULL)
-    return proc_entry;
+  if (procdp == NULL) return proc_entry;
   while ((procdentry = readdir(procdp)) != NULL) {
-    struct dirent *procsubdentry; // Procfs Subdir
+    struct dirent *procsubdentry;  // Procfs Subdir
     char proc_dir[64];
     snprintf(proc_dir, 64, "/proc/%s/fd", procdentry->d_name);
     DIR *procsubdp = opendir(proc_dir);
@@ -83,14 +81,13 @@ struct ProcEntry proc_entry_from_ino(ino_t ino) {
 }
 
 int fd_from_ino(ino_t ino) {
-  struct dirent *procdentry; // Procfs
+  struct dirent *procdentry;  // Procfs
   char needle[64] = "";
   snprintf(needle, 64, "socket:[%lu]", ino);
   DIR *procdp = opendir("/proc");
-  if (procdp == NULL)
-    return -1;
+  if (procdp == NULL) return -1;
   while ((procdentry = readdir(procdp)) != NULL) {
-    struct dirent *procsubdentry; // Procfs Subdir
+    struct dirent *procsubdentry;  // Procfs Subdir
     char proc_dir[64];
     snprintf(proc_dir, 64, "/proc/%s/fd", procdentry->d_name);
     DIR *procsubdp = opendir(proc_dir);
@@ -118,13 +115,12 @@ int fd_from_ino(ino_t ino) {
 }
 
 int fd_from_pid(pid_t pid) {
-  struct dirent *procsubdentry; // Procfs Subdir
+  struct dirent *procsubdentry;  // Procfs Subdir
   char proc_dir[64];
   char needle[64] = "socket";
   snprintf(proc_dir, 64, "/proc/%d/fd", pid);
   DIR *procsubdp = opendir(proc_dir);
-  if (procsubdp == NULL)
-    return -1;
+  if (procsubdp == NULL) return -1;
   while ((procsubdentry = readdir(procsubdp)) != NULL) {
     char proc_fd_path[64];
     char fd_content[64] = "";

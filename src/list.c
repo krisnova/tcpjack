@@ -41,8 +41,8 @@ struct TCPList list() {
   char proc_net_tcp[13] = "/proc/net/tcp";
   FILE *f = fopen(proc_net_tcp, "r");
   char line[1024];
-  int line_num = 0; // Line number in the proc file
-  int numconns = 0; // Count of TCP_ESTABLISHED connections
+  int line_num = 0;  // Line number in the proc file
+  int numconns = 0;  // Count of TCP_ESTABLISHED connections
   while (fgets(line, sizeof(line), f)) {
     if (line_num == 0) {
       line_num++;
@@ -53,7 +53,7 @@ struct TCPList list() {
     int local_addr_port;
     uint32_t rem_addr_ipv4;
     int rem_addr_port;
-    unsigned int st; // TCP Enums are unsigned int
+    unsigned int st;  // TCP Enums are unsigned int
     int tx_queue;
     int rx_queue;
     int tr;

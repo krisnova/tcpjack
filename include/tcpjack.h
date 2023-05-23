@@ -14,12 +14,15 @@
 #define TCPJACK_H
 
 #define VERSION "0.0.2"
-#define TCP_LIST_SIZE 1024
+#define TCP_LIST_SIZE SIZE_1024
 #define TRACE_HOP_MAX 32
 #define TRACE_SPOOF_COUNT 32
 #define TIME_MS 1000
 #define DATAGRAM_LEN 4096
 #define OPT_SIZE 20
+
+#define SIZE_64 64
+#define SIZE_1024 1024
 
 #include <arpa/inet.h>
 #include <dirent.h>
@@ -84,8 +87,28 @@ struct TraceReport {
   struct Hop hops[TRACE_HOP_MAX];
 };
 
+/**
+ * Trace by inode
+ *
+ * @param ino
+ * @return
+ */
 struct TraceReport trace_ino(ino_t ino);
+
+/**
+ * Trace by pid (will select the first "socket" in /proc)
+ *
+ * @param pid
+ * @return
+ */
 struct TraceReport trace_pid(pid_t pid);
+
+/**
+ * Trace by ProcEntry which can be created from a pid.
+ *
+ * @param proc_entry
+ * @return
+ */
 struct TraceReport trace_proc_entry(struct ProcEntry proc_entry);
 void print_trace_report(struct TraceReport tps_report);
 
@@ -133,9 +156,26 @@ void print_proc_entry(struct ProcEntry proc_entry);
  */
 void asciiheader();
 
+/**
+ * Create a TCP SYN packet (valid, ttl=64)
+ *
+ * @param src
+ * @param dst
+ * @param out_packet
+ * @param out_packet_len
+ */
 void packet_tcp_syn(struct sockaddr_in *src, struct sockaddr_in *dst,
                     char **out_packet, int *out_packet_len);
 
+/**
+ * Create a TCP SYN packet with a custom TTL value
+ *
+ * @param src
+ * @param dst
+ * @param out_packet
+ * @param out_packet_len
+ * @param ttl
+ */
 void packet_tcp_syn_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
                         char **out_packet, int *out_packet_len, int ttl);
 
