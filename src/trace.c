@@ -18,7 +18,7 @@
 
 struct TraceEmitionContext {
   int count;
-  int jacked_fd;
+  struct TCPConn conn;
 };
 
 /**
@@ -28,19 +28,8 @@ struct TraceEmitionContext {
  * @return
  */
 struct TraceReport trace_ino(ino_t ino) {
-  struct ProcEntry proc_entry = proc_entry_from_ino(ino);
-  return trace_proc_entry(proc_entry);
-}
-
-/**
- * Wrapper function for trace_proc_entry
- *
- * @param pid
- * @return
- */
-struct TraceReport trace_pid(pid_t pid) {
-  struct ProcEntry proc_entry = proc_entry_from_pid(pid);
-  return trace_proc_entry(proc_entry);
+  struct TCPConn tcpconn = tcpconn_from_ino(ino);
+  return trace_tcpconn(tcpconn);
 }
 
 /**
@@ -52,18 +41,27 @@ struct TraceReport trace_pid(pid_t pid) {
 void *emit_trace_packets(void *vctx) {
   struct TraceEmitionContext *ctxp = (struct TraceEmitionContext *)vctx;
   struct TraceEmitionContext ctx = *ctxp;
-  int ttl = ctx.count + 1;
+  // TTL is set to i + 1
   for (int i = 0; i <= ctx.count; i++) {
+    printf("iter=%d\n", i);
     char *packet;
-    struct sockaddr_in saddr = {};  // TODO pull from proc
-    struct sockaddr_in daddr = {};  // TODO pull from proc
+    struct sockaddr_in saddr = {
+        .sin_addr = ctx.conn.local_addr,
+        .sin_port = ctx.conn.local_port
+    };
+    struct sockaddr_in daddr = {
+        .sin_addr = ctx.conn.remote_addr,
+        .sin_port = ctx.conn.remote_port,
+    };
     int packet_len;
-    packet_tcp_syn_ttl(&saddr, &daddr, &packet, &packet_len, ttl--);
-    if (sendto(ctx.jacked_fd, packet, packet_len, 0, (struct sockaddr *)&daddr,
+    packet_tcp_keepalive_ttl(&saddr, &daddr, &packet, &packet_len, i + 1);
+    printf("-\n");
+    if (sendto(ctx.conn.proc_entry.jacked_fd, packet, packet_len, 0, (struct sockaddr *)&daddr,
                sizeof(struct sockaddr)) != 0) {
-      printf("Sent packet=%d, ttl=%d\n", i, ttl);
+      printf("Sent packet ttl=%d\n", i + 1);
     } else {
-      printf("Error! Unable to send promiscuous TCP SYN packet: %d\n", errno);
+      printf("Error!\n");
+      printf("Unable to send promiscuous TCP SYN packet: %d\n", errno);
     }
     usleep(TIME_MS * 100);  // 100ms
   }
@@ -78,19 +76,22 @@ void *emit_trace_packets(void *vctx) {
  *
  * Build on a ProcEntry and network and TCP values will be inferred.
  *
- * @param proc_entry
+ * @param tcpconn
  * @return
  */
-struct TraceReport trace_proc_entry(struct ProcEntry proc_entry) {
-  struct TraceReport tps_report = {.proc_entry = proc_entry};
-  printf("Tracing [%s] (%d)\n", proc_entry.comm, proc_entry.pid);
+struct TraceReport trace_tcpconn(struct TCPConn tcpconn) {
+  struct TraceReport tps_report = {
+      .proc_entry = tcpconn.proc_entry,
+      .pid = tcpconn.proc_entry.pid,
+      .ino = tcpconn.ino,
+  };
+  printf("Tracing [%s] (%d)\n", tcpconn.proc_entry.comm, tcpconn.proc_entry.pid);
 
   // Begin to send spoofed packets
   pthread_t th;
 
   // Build our trace context
-  struct TraceEmitionContext ctx = {.count = TRACE_SPOOF_COUNT,
-                                    .jacked_fd = proc_entry.jacked_fd};
+  struct TraceEmitionContext ctx = {.count = TRACE_SPOOF_COUNT, .conn = tcpconn};
 
   // Spawn the emit thread
   pthread_create(&th, NULL, emit_trace_packets, (void *)&ctx);
@@ -99,6 +100,7 @@ struct TraceReport trace_proc_entry(struct ProcEntry proc_entry) {
   pthread_join(th, NULL);
 
   // Assemble trace
+  // TODO libpcap
 
   return tps_report;
 }

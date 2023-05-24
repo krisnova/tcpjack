@@ -50,6 +50,11 @@ void print_list(struct TCPList tcplist);
 struct ProcEntry {
   pid_t pid;
   char *comm;
+  /**
+   * The jacked_fd is a 1 to many mapping of socket FDs to a given pid.
+   * If this is parsed via an inode it is a specific FD.
+   * If this is parsed via a pid, it is the first one found at runtime!
+   */
   int jacked_fd;
 };
 
@@ -101,15 +106,21 @@ struct TraceReport trace_ino(ino_t ino);
  * @param pid
  * @return
  */
-struct TraceReport trace_pid(pid_t pid);
+struct TraceReport trace_pid(pid_t pid);  // TODO implement this
 
 /**
- * Trace by ProcEntry which can be created from a pid.
+ * Trace an established TCP connection.
  *
- * @param proc_entry
+ * @param tcpconn
  * @return
  */
-struct TraceReport trace_proc_entry(struct ProcEntry proc_entry);
+struct TraceReport trace_tcpconn(struct TCPConn tcpconn);
+
+/**
+ * Print a tps_report to standard out.
+ *
+ * @param tps_report
+ */
 void print_trace_report(struct TraceReport tps_report);
 
 /**
@@ -145,6 +156,14 @@ struct ProcEntry proc_entry_from_ino(ino_t ino);
 struct ProcEntry proc_entry_from_pid(pid_t pid);
 
 /**
+ * Load a TCPConn structure from a given ino.
+ *
+ * @param ino
+ * @return
+ */
+struct TCPConn tcpconn_from_ino(ino_t ino);
+
+/**
  * Print a ProcEntry using tcpjack default printing semantics.
  *
  * @param proc_entry
@@ -157,7 +176,7 @@ void print_proc_entry(struct ProcEntry proc_entry);
 void asciiheader();
 
 /**
- * Create a TCP SYN packet (valid, ttl=64)
+ * Create a TCP SYN packet (valid, ttl=64).
  *
  * @param src
  * @param dst
@@ -168,7 +187,7 @@ void packet_tcp_syn(struct sockaddr_in *src, struct sockaddr_in *dst,
                     char **out_packet, int *out_packet_len);
 
 /**
- * Create a TCP SYN packet with a custom TTL value
+ * Create a TCP SYN packet with a custom TTL value.
  *
  * @param src
  * @param dst
@@ -179,4 +198,15 @@ void packet_tcp_syn(struct sockaddr_in *src, struct sockaddr_in *dst,
 void packet_tcp_syn_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
                         char **out_packet, int *out_packet_len, int ttl);
 
+/**
+ * Create a TCP SYN keep-alive packet with a custom TTL value.
+ *
+ * @param src
+ * @param dst
+ * @param out_packet
+ * @param out_packet_len
+ * @param ttl
+ */
+void packet_tcp_keepalive_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
+                                  char **out_packet, int *out_packet_len, int ttl);
 #endif

@@ -136,6 +136,58 @@ int fd_from_pid(pid_t pid) {
   return -1;
 }
 
+struct TCPConn tcpconn_from_ino(ino_t search_ino) {
+  char proc_net_tcp[13] = "/proc/net/tcp";
+  FILE *f = fopen(proc_net_tcp, "r");
+  char line[1024];
+  int line_num = 0;  // Line number in the proc file
+  while (fgets(line, sizeof(line), f)) {
+    if (line_num == 0) {
+      line_num++;
+      continue;
+    }
+    line_num++;
+    char sl[4];
+    uint32_t local_addr_ipv4;
+    int local_addr_port;
+    uint32_t rem_addr_ipv4;
+    int rem_addr_port;
+    unsigned int st;  // TCP Enums are unsigned int
+    int tx_queue;
+    int rx_queue;
+    int tr;
+    int tm_when;
+    int retrnsmt;
+    uid_t uid;
+    int timeout;
+    ino_t ino;
+    fscanf(f, "%s %x:%x %x:%x %i %x:%x %x:%x %x %d %x %lu", sl,
+           &local_addr_ipv4, &local_addr_port, &rem_addr_ipv4, &rem_addr_port,
+           &st, &tx_queue, &rx_queue, &tr, &tm_when, &retrnsmt, &uid, &timeout,
+           &ino);
+    if (search_ino == ino) {
+      struct in_addr local_ip;
+      local_ip.s_addr = local_addr_ipv4;
+      struct in_addr remote_ip;
+      remote_ip.s_addr = rem_addr_ipv4;
+      struct ProcEntry proc_entry = proc_entry_from_ino(ino);
+      struct TCPConn conn = {.ino = ino,
+                             .local_addr = local_ip,
+                             .local_port = local_addr_port,
+                             .remote_addr = remote_ip,
+                             .remote_port = rem_addr_port,
+                             .uid = uid,
+                             .proc_entry = proc_entry};
+      return conn;
+    }
+  }
+  fclose(f);
+  struct TCPConn x = {
+      .ino = 0,
+  };
+  return x;
+}
+
 void print_proc_entry(struct ProcEntry proc_entry) {
   // TODO Clean this up
   printf("%d %s\n", proc_entry.pid, proc_entry.comm);

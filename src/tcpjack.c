@@ -44,7 +44,7 @@ void usage() {
   printf("-h, help           Display help and usage.\n");
   printf("-l, list           List established TCP connections and inodes.\n");
   printf("-t, trace  <ino>   Trace (layer 3) connection by inode.\n");
-  printf("-p, pid    <pid>   Trace (layer 3) connection by pid.\n");
+  //  printf("-p, pid    <pid>   Trace (layer 3) connection by pid.\n");
   printf("-j, jack   <ino>   Send data to existing TCP connection.\n");
   printf("\n");
   exit(0);
@@ -116,33 +116,13 @@ int main(int argc, char **argv) {
       printf("Invalid or bad inode number.\n");
       return -1;
     }
-    struct ProcEntry proc_entry = proc_entry_from_ino(ino);
-    if (proc_entry.pid == 0) {
+    struct TCPConn tcpconn = tcpconn_from_ino(ino);
+    if (tcpconn.ino == 0) {
       printf("Unable to trace inode %lu. Error finding proc entry for inode.\n",
              ino);
       return -2;
     }
-    struct TraceReport tps_report = trace_proc_entry(proc_entry);
-    print_trace_report(tps_report);
-    return 0;
-  }
-
-  // -p pid <pid>
-  if (cfg.pid == 1 && argc == 3) {
-    char *pidstr = argv[2];
-    char *term;
-    pid_t pid = strtol(pidstr, &term, 10);
-    if (errno != 0 || pid == 0) {
-      printf("Invalid or bad pid.\n");
-      return -1;
-    }
-    struct ProcEntry proc_entry = proc_entry_from_pid(pid);
-    if (proc_entry.pid == 0) {
-      printf("Unable to trace pid %d. Unable to find process entry for pid.\n",
-             pid);
-      return -2;
-    }
-    struct TraceReport tps_report = trace_proc_entry(proc_entry);
+    struct TraceReport tps_report = trace_tcpconn(tcpconn);
     print_trace_report(tps_report);
     return 0;
   }
