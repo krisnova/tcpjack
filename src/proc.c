@@ -178,6 +178,7 @@ struct TCPConn tcpconn_from_ino(ino_t search_ino) {
                              .remote_port = rem_addr_port,
                              .uid = uid,
                              .proc_entry = proc_entry};
+      fclose(f);
       return conn;
     }
   }

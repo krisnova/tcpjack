@@ -10,22 +10,25 @@
 #                                                                             #
 ###############################################################################
 
-all: compile
-
 CC           ?= clang
 TARGET       ?= tcpjack
-CFLAGS       ?= -I/usr/include -I./include -L/usr/lib -g
+DESTDIR      ?= /usr/bin
+CFLAGS       ?= -I/usr/include -I./include -L/usr/lib -g -O0
 LDFLAGS      ?=
 LIBS         ?= -lnet -lpcap
-STYLE         = Google
+STYLE        ?= Google
+SOURCES      ?= src/tcpjack.c src/list.c src/proc.c src/trace.c src/packet.c
 
-compile: ## Compile for the local architecture ⚙
-	@$(CC) $(CFLAGS) $(LDFLAGS) $(LIBS) -o $(TARGET) \
-		src/tcpjack.c src/list.c src/proc.c src/trace.c \
-		src/packet.c
+default: tcpjack
+all:     tcpjack install
+
+.PHONY: tcpjack
+tcpjack: ## Compile for the local architecture ⚙
+	@$(CC) $(CFLAGS) $(LDFLAGS) $(LIBS) -o $(TARGET) $(SOURCES)
 
 install: ## Install the program to /usr/bin 🎉
 	@echo "Installing..."
+	install -m 755 $(TARGET) $(DESTDIR)/$(TARGET)
 
 clean: ## Clean your artifacts 🧼
 	@echo "Cleaning..."
