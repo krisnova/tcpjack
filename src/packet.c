@@ -221,7 +221,7 @@ void packet_tcp_keepalive_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
   tcph->syn = 0;
   tcph->rst = 0;
   tcph->psh = 0;
-  tcph->ack = 0; // keepalive
+  tcph->ack = 1; // keepalive
   tcph->urg = 0;
   tcph->check = 0;             // correct calculation follows later
   tcph->window = htons(5840);  // window size
