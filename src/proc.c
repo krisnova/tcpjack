@@ -34,10 +34,10 @@ struct ProcEntry proc_entry_from_pid(pid_t pid) {
     comm[strcspn(comm, "\n")] = 0;
     struct ProcEntry proc_entry = {
         .pid = pid, .comm = comm, .jacked_fd = fd_from_pid(pid)};
-      fclose(comm_f);
+    fclose(comm_f);
     return proc_entry;
   }
-    fclose(comm_f);
+  fclose(comm_f);
   return proc_entry;
 }
 
@@ -142,11 +142,11 @@ struct TCPConn tcpconn_from_ino(ino_t search_ino) {
   char *proc_net_tcp = "/proc/net/tcp";
   FILE *f = fopen(proc_net_tcp, "r");
   if (f == NULL) {
-      printf("Error opening /proc/net/tcp: %d\n", errno);
-      struct TCPConn x = {
-              .ino = 0,
-      };
-      return x;
+    printf("Error opening /proc/net/tcp: %d\n", errno);
+    struct TCPConn x = {
+        .ino = 0,
+    };
+    return x;
   }
   char line[1024];
   int line_num = 0;  // Line number in the proc file

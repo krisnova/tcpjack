@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 void asciiheader() {
   printf("\e[0;33m  _             _            _    \e[0m\n");
@@ -48,6 +49,13 @@ void usage() {
   printf("-j, jack   <ino>   Send data to existing TCP connection.\n");
   printf("\n");
   exit(0);
+}
+
+void priv() {
+  if (geteuid() != 0) {
+    fprintf(stderr, "Permission denied.\n");
+    exit(1);
+  }
 }
 
 /**
@@ -109,6 +117,7 @@ int main(int argc, char **argv) {
 
   // -t trace <ino>
   if (cfg.trace == 1 && argc == 3) {
+    priv();
     char *inode = argv[2];
     char *term;
     ino_t ino = (unsigned long)(unsigned int)strtol(inode, &term, 10);
@@ -129,6 +138,7 @@ int main(int argc, char **argv) {
 
   // -j jack <ino>
   if (cfg.jack == 1 && argc == 3) {
+    priv();
     char *inode = argv[2];
     char *term;
     ino_t ino = (unsigned long)(unsigned int)strtol(inode, &term, 10);

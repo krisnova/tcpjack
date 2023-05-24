@@ -191,8 +191,25 @@ void packet_tcp_syn_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
   free(pseudogram);
 }
 
+/**
+ * Here we have a somewhat experimental "keepalive" packet for tracing.
+ *
+ * The theory here is that if we flip the "ack" bit we can safely
+ * arrive at our destination and not cause any problems.
+ *
+ * While we are generating a random SEQ number in the current implementation
+ * it does not seem to be causing problems. In the future we might
+ * want to sniff a packet off the wire, and set the SEQ to whatever we can
+ * sniff plus 1.
+ *
+ * @param src
+ * @param dst
+ * @param out_packet
+ * @param out_packet_len
+ * @param ttl
+ */
 void packet_tcp_keepalive_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
-                        char **out_packet, int *out_packet_len, int ttl) {
+                              char **out_packet, int *out_packet_len, int ttl) {
   char *datagram = calloc(DATAGRAM_LEN, sizeof(char));
   struct iphdr *iph = (struct iphdr *)datagram;
   struct tcphdr *tcph = (struct tcphdr *)(datagram + sizeof(struct iphdr));
@@ -221,7 +238,7 @@ void packet_tcp_keepalive_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
   tcph->syn = 0;
   tcph->rst = 0;
   tcph->psh = 0;
-  tcph->ack = 1; // keepalive
+  tcph->ack = 1;  // keepalive
   tcph->urg = 0;
   tcph->check = 0;             // correct calculation follows later
   tcph->window = htons(5840);  // window size
