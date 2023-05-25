@@ -53,12 +53,23 @@ void *sniff_replies(void *v) {
   char *dev;
   int found = 0;
   for (i = interfaces; i != NULL; i = i->next) {
+    if (found) break;
     pcap_addr_t *dev_addr;
     for (dev_addr = i->addresses; dev_addr != NULL; dev_addr = dev_addr->next) {
+      dev = i->name;
+
+      // Search criteria for interfaces
+      if (strstr(dev, "br") != NULL) continue;      // Ignore bridge interfaces
+      if (strstr(dev, "docker") != NULL) continue;  // Ignore docker interfaces
+      if (strstr(dev, "docker") != NULL) continue;  // Ignore docker interfaces
+      if (strstr(dev, "veth") != NULL) continue;    // Ignore veth interfaces
+      if (strcmp(dev, "lo") == 0) continue;         // Ignore loopback
+
+      // Quickly filter valid interfaces
       if (dev_addr->addr->sa_family == AF_INET && dev_addr->addr &&
           dev_addr->netmask) {
-        dev = i->name;  // Safe to capture
-        found = 1;
+        found = 1;  // Found it!
+        break;
       }
     }
   }
@@ -94,9 +105,10 @@ void *sniff_replies(void *v) {
   struct pcap_pkthdr header;
   const u_char *packet;
   int sniff = 1;
-  printf(" <- Sniffing the wire.\n");
+  printf(" <- Sniffing the wire for device: %s.\n", dev);
   while (sniff) {
     packet = pcap_next(handle, &header);
+    printf(".\n");
     int packet_length = header.len;
     struct ether_header *eth = (struct ether_header *)packet;
     if (ntohs(eth->ether_type) == ETHERTYPE_IP) {
@@ -153,10 +165,17 @@ void *emit_trace_packets(void *vctx) {
     };
     int packet_len;
     packet_tcp_keepalive_ttl(&saddr, &daddr, &packet, &packet_len, i + 1);
-    if (sendto(ctx.conn.proc_entry.jacked_fd, packet, packet_len, 0,
-               (struct sockaddr *)&daddr, sizeof(struct sockaddr)) == 0) {
-      printf("Error!\n");
-      printf("Unable to send promiscuous TCP SYN packet: %d\n", errno);
+    if (ctx.conn.proc_entry.jacked_fd <= 0) {
+      printf("Connection dropped!\n");
+    }
+    if (sendto(ctx.conn.proc_entry.jacked_fd, packet, packet_len, MSG_NOSIGNAL,
+               (struct sockaddr *)&daddr, sizeof(struct sockaddr)) <= 0) {
+      int err = errno;
+      printf("Error: %s\n", strerror(errno));
+      if (err == 32) {
+        // Broken pipe
+        break;
+      }
     }
     usleep(TIME_MS * 100);  // 100ms
   }
