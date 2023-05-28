@@ -200,7 +200,12 @@ void packet_tcp_syn_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
  * While we are generating a random SEQ number in the current implementation
  * it does not seem to be causing problems. In the future we might
  * want to sniff a packet off the wire, and set the SEQ to whatever we can
- * sniff plus 1.
+ * sniff minus 1.
+ *
+ *    A TCP keep-alive packet is simply an ACK with the sequence number set to
+ *    one less than the current sequence number for the connection.
+ *
+ * Source: https://www.cceye.com/tcp-keep-alive/
  *
  * @param src
  * @param dst
@@ -220,7 +225,7 @@ void packet_tcp_keepalive_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
   iph->version = 4;
   iph->tos = 0;
   iph->tot_len = sizeof(struct iphdr) + sizeof(struct tcphdr) + OPT_SIZE;
-  iph->id = htonl(rand() % 65535);  // id of this packet
+  iph->id = htonl(0);  // id of this packet
   iph->frag_off = 0;
   iph->ttl = ttl;
   iph->protocol = IPPROTO_TCP;
@@ -231,14 +236,14 @@ void packet_tcp_keepalive_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
   // TCP header configuration
   tcph->source = src->sin_port;
   tcph->dest = dst->sin_port;
-  tcph->seq = htonl(rand() % 4294967295);
+  tcph->seq = htonl(0);
   tcph->ack_seq = htonl(0);
   tcph->doff = 10;  // tcp header size
   tcph->fin = 0;
   tcph->syn = 0;
   tcph->rst = 0;
   tcph->psh = 0;
-  tcph->ack = 1;  // keepalive
+  tcph->ack = 1;
   tcph->urg = 0;
   tcph->check = 0;             // correct calculation follows later
   tcph->window = htons(5840);  // window size
