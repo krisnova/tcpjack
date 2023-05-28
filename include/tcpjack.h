@@ -209,5 +209,5 @@ void packet_tcp_syn_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
  */
 void packet_tcp_keepalive_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
                               char **out_packet, int *out_packet_len,
-                              uint32_t known_seq, int ttl);
+                              uint16_t id, uint32_t known_seq, int ttl);
 #endif

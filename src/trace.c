@@ -10,8 +10,7 @@
 *                                                                             *
 \******************************************************************************/
 
-// TODO Correlate SADDR to Interface instead of guessing
-// TODO Correlate packet to pid during initial snoop
+// TODO Correlate initial sniffed packet to Interface after guessing
 
 #include <errno.h>
 #include <net/ethernet.h>
@@ -89,36 +88,22 @@ void *sniff_replies(void *vctx) {
         struct icmphdr *icmp =
             (struct icmphdr *)(packet + sizeof(struct ether_header) +
                                sizeof(struct iphdr));
-        printf(" Protocol: ICMP\n");
-        printf("     From: %s\n", inet_ntoa(*(struct in_addr *)&ip->saddr));
-        printf("       To: %s\n", inet_ntoa(*(struct in_addr *)&ip->daddr));
 
+        // Only listen for ICMP_TIME_EXCEEDED packets
         if (icmp->type == ICMP_TIME_EXCEEDED) {
+          printf("Time Exceeded Packet\n");
+          printf("     From: %s\n", inet_ntoa(*(struct in_addr *)&ip->saddr));
+          printf("       To: %s\n", inet_ntoa(*(struct in_addr *)&ip->daddr));
           if (packet_length > (sizeof(struct ether_header) +
                                sizeof(struct iphdr) + sizeof(struct icmphdr))) {
-            printf("  TTL Exceeded Payload: ");
+            printf("  Payload: ");
             puts((char *)packet +
                  (sizeof(struct ether_header) + sizeof(struct iphdr) +
                   sizeof(struct icmphdr)));
           }
+          printf("\n");
         }
-        printf("\n");
-
-        //        if (icmp->type == ICMP_ECHO || icmp->type == ICMP_ECHOREPLY) {
-        //          if (icmp->type == ICMP_ECHO) {
-        //            printf("ping request\n");
-        //          } else if (icmp->type == ICMP_ECHOREPLY) {
-        //            printf("ping reply\n");
-        //          }
-
-        //        }else {
-        //            printf("Unknown type: %d", icmp->type);
-        //        }
-      } else {
-        //printf("Non ICMP packet %d\n", ip->protocol);
       }
-    } else {
-      //printf("Non ethertype IP packet\n");
     }
   }
 
@@ -136,13 +121,12 @@ void *emit_trace_packets(void *vctx) {
   struct TraceEmitionContext ctx = *ctxp;
   printf(" -> Instrumenting the wire using %s TCP connection [%lu]\n",
          ctx.conn.proc_entry.comm, ctx.conn.ino);
+  struct msghdr *msg = NULL;
+  int size;
+  size = recvmsg(ctx.conn.proc_entry.jacked_fd, msg, 0);
+
   // TTL is set to i + 1
   for (int i = 0; i < ctx.count; i++) {
-    // Spoof receiving data from the remote.
-    struct msghdr *msg = NULL;
-    int size;
-    size = recvmsg(ctx.conn.proc_entry.jacked_fd, msg, 0);
-
     char *packet;
     struct sockaddr_in saddr = {.sin_addr = ctx.conn.local_addr,
                                 .sin_port = ctx.conn.local_port};
@@ -151,21 +135,24 @@ void *emit_trace_packets(void *vctx) {
         .sin_port = ctx.conn.remote_port,
     };
     int packet_len;
+
     packet_tcp_keepalive_ttl(&saddr, &daddr, &packet, &packet_len,
-                             ctx.sniffed_tcp_header->seq, i + 1);
+                             ctx.sniffed_ip_header->id, ctx.sniffed_tcp_header->seq, i + 1);
     if (ctx.conn.proc_entry.jacked_fd <= 0) {
       printf("Connection dropped!\n");
     }
+
+    // Emit the instrumented TCP packet
     if (sendto(ctx.conn.proc_entry.jacked_fd, packet, packet_len, MSG_NOSIGNAL,
                (struct sockaddr *)&daddr, sizeof(struct sockaddr)) <= 0) {
       int err = errno;
       printf("Error: %s\n", strerror(errno));
-      if (err == 32) {
-        // Broken pipe
-        break;
-      }
+      if (err == 32) break;  // Broken pipe
+      if (err != 0) break;   // Another error
     }
     printf(" -> Emit Packet TTL %d\n", i + 1);
+    // Spoof receiving data from the remote.
+    size = recvmsg(ctx.conn.proc_entry.jacked_fd, msg, 0);
     usleep(TIME_MS * 100);  // 100ms
   }
   return NULL;
@@ -297,6 +284,7 @@ struct TraceReport trace_tcpconn(struct TCPConn tcpconn) {
 
   // eth_header, ip_header, tcp_header is now available and guaranteed
   // to be a sniffed packet from the hijacked TCP connection.
+
 
   // Spawn the sniff thread
   struct TraceSniffContext sctx = {.handle = handle,

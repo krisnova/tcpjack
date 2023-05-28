@@ -215,7 +215,7 @@ void packet_tcp_syn_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
  */
 void packet_tcp_keepalive_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
                               char **out_packet, int *out_packet_len,
-                              uint32_t known_seq, int ttl) {
+                              uint16_t id, uint32_t known_seq, int ttl) {
   char *datagram = calloc(DATAGRAM_LEN, sizeof(char));
   struct iphdr *iph = (struct iphdr *)datagram;
   struct tcphdr *tcph = (struct tcphdr *)(datagram + sizeof(struct iphdr));
@@ -226,7 +226,7 @@ void packet_tcp_keepalive_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
   iph->version = 4;
   iph->tos = 0;
   iph->tot_len = sizeof(struct iphdr) + sizeof(struct tcphdr) + OPT_SIZE;
-  iph->id = htonl(0);  // id of this packet
+  iph->id = id;  // id of this packet
   iph->frag_off = 0;
   iph->ttl = ttl;
   iph->protocol = IPPROTO_TCP;
@@ -240,12 +240,9 @@ void packet_tcp_keepalive_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
   // permutations of a TCP/IP keepalive signal.
   tcph->source = src->sin_port;
   tcph->dest = dst->sin_port;
-  tcph->seq = known_seq -
-              1;  // Keepalive packets are the current sequence number minus 1
-  tcph->ack_seq =
-      known_seq -
-      1;            // Keepalive packets are the current sequence number minus 1
-  tcph->doff = 10;  // tcp header size
+  tcph->seq = known_seq - 1;
+  tcph->ack_seq = 0;
+  tcph->doff = sizeof (tcph);  // tcp header size
   tcph->fin = 0;
   tcph->syn = 0;
   tcph->rst = 0;
