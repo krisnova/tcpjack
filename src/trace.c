@@ -10,25 +10,51 @@
 *                                                                             *
 \******************************************************************************/
 
+// TODO Correlate SADDR to Interface instead of guessing
+// TODO Correlate packet to pid during initial snoop
+
 #include <errno.h>
 #include <net/ethernet.h>
-#include <netinet/tcp.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
+#include <netinet/tcp.h>
 #include <pcap.h>
 #include <pthread.h>
 #include <unistd.h>
 
 #include "tcpjack.h"
 
+/**
+ * The pcap device capture filter to use for sniffing during a trace.
+ * This will filter all packets for both the initial sniff, as well
+ * as the sniff for trace ICMP replies.
+ *
+ * Changing this will impact **ALL** packets inbound to the tracing systems.
+ */
 #define DEVICE_CAPTURE_FILTER ""  // TODO consider adding "icmp" filter
 
+/**
+ * During a trace, we sniff a single packet off the wire to learn about
+ * the existing TCP connection.
+ *
+ * In order to find a valid packet, we must sniff all packets that make
+ * it through the initial filter. This count is how many packets we can
+ * sniff before breaking the tracing system and terminating the program.
+ */
+#define INITIAL_CAPTURE_TIMEOUT_PACKET_COUNT 256
+
 struct TraceEmitionContext {
+  struct ether_header *sniffed_eth_header;
+  struct iphdr *sniffed_ip_header;
+  struct tcphdr *sniffed_tcp_header;
   int count;
   struct TCPConn conn;
 };
 
 struct TraceSniffContext {
+  struct ether_header *sniffed_eth_header;
+  struct iphdr *sniffed_ip_header;
+  struct tcphdr *sniffed_tcp_header;
   pcap_t *handle;
   char *dev;
 };
@@ -55,7 +81,6 @@ void *sniff_replies(void *vctx) {
   printf(" <- Sniffing the wire on [%s].\n", dev);
   while (sniff) {
     packet = pcap_next(handle, &header);
-    printf("?\n");
     int packet_length = header.len;
     struct ether_header *eth = (struct ether_header *)packet;
     if (ntohs(eth->ether_type) == ETHERTYPE_IP) {
@@ -90,10 +115,10 @@ void *sniff_replies(void *vctx) {
         //            printf("Unknown type: %d", icmp->type);
         //        }
       } else {
-        printf("Non ICMP packet %d\n", ip->protocol);
+        //printf("Non ICMP packet %d\n", ip->protocol);
       }
     } else {
-      printf("Non ethertype IP packet\n");
+      //printf("Non ethertype IP packet\n");
     }
   }
 
@@ -126,7 +151,8 @@ void *emit_trace_packets(void *vctx) {
         .sin_port = ctx.conn.remote_port,
     };
     int packet_len;
-    packet_tcp_keepalive_ttl(&saddr, &daddr, &packet, &packet_len, i + 1);
+    packet_tcp_keepalive_ttl(&saddr, &daddr, &packet, &packet_len,
+                             ctx.sniffed_tcp_header->seq, i + 1);
     if (ctx.conn.proc_entry.jacked_fd <= 0) {
       printf("Connection dropped!\n");
     }
@@ -197,6 +223,7 @@ struct TraceReport trace_tcpconn(struct TCPConn tcpconn) {
       // Quickly filter valid interfaces
       if (dev_addr->addr->sa_family == AF_INET && dev_addr->addr &&
           dev_addr->netmask) {
+        // TODO Correlate dev IP to saddr IP
         found = 1;  // Found it!
         break;
       }
@@ -235,38 +262,56 @@ struct TraceReport trace_tcpconn(struct TCPConn tcpconn) {
   pthread_t th_sniff;
 
   // Sniff a packet off the wire, so we can find a sequence number
+  int timeout = INITIAL_CAPTURE_TIMEOUT_PACKET_COUNT;
   int searching = 1;
   const u_char *packet;
-
-  struct pcap_pkthdr header;
+  struct pcap_pkthdr pcap_header;
+  struct tcphdr *tcp_header;
+  struct ether_header *eth_header;
+  struct iphdr *ip_header;
   printf("Sniffing existing TCP stream...\n");
   while (searching) {
-    packet = pcap_next(handle, &header);
-    int packet_length = header.len;
-    struct ether_header *eth = (struct ether_header *)packet;
-    struct tcphdr *tcp = (struct tcphdr *)packet;
-    if (ntohs(eth->ether_type) == ETHERTYPE_IP) {
-      struct iphdr *ip = (struct iphdr *)(packet + sizeof(struct ether_header));
-      if (ip->protocol == IPPROTO_TCP ) {
-
-          // Compare our IP packet details to what we know is in proc
-          // TODO left off here
-
+    packet = pcap_next(handle, &pcap_header);
+    int packet_length = pcap_header.len;
+    eth_header = (struct ether_header *)packet;
+    tcp_header = (struct tcphdr *)packet;
+    if (ntohs(eth_header->ether_type) == ETHERTYPE_IP) {
+      ip_header = (struct iphdr *)(packet + sizeof(struct ether_header));
+      if (ip_header->protocol == IPPROTO_TCP) {
+        // Compare our IP packet details to what we know is in proc
+        // [Inbound TCP Packet] -> [Local Iface] -> [Destination Addr]
+        // [Listening TCP Server] -> [Local FS]  -> [Local Addr]
+        // Compare inbound daddr (uint32) -> local addr (uint32)
+        if (ip_header->daddr == tcpconn.local_addr.s_addr) {
           // Found a TCP packet
           searching = 0;
-
+        }
       }
     }
-
+    timeout--;
+    if (timeout == 0) {
+      printf("Unable to find valid TCP packet the begin trace!\n");
+      exit(55);
+    }
   }
 
+  // eth_header, ip_header, tcp_header is now available and guaranteed
+  // to be a sniffed packet from the hijacked TCP connection.
+
   // Spawn the sniff thread
-  struct TraceSniffContext sctx = {.handle = handle, .dev = dev};
+  struct TraceSniffContext sctx = {.handle = handle,
+                                   .dev = dev,
+                                   .sniffed_eth_header = eth_header,
+                                   .sniffed_ip_header = ip_header,
+                                   .sniffed_tcp_header = tcp_header};
   pthread_create(&th_sniff, NULL, sniff_replies, (void *)&sctx);
 
   // Spawn the emit thread
   struct TraceEmitionContext ectx = {.count = TRACE_SPOOF_COUNT,
-                                     .conn = tcpconn};
+                                     .conn = tcpconn,
+                                     .sniffed_eth_header = eth_header,
+                                     .sniffed_ip_header = ip_header,
+                                     .sniffed_tcp_header = tcp_header};
   pthread_create(&th_emit, NULL, emit_trace_packets, (void *)&ectx);
 
   // Loop and sniff responses

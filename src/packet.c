@@ -214,7 +214,8 @@ void packet_tcp_syn_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
  * @param ttl
  */
 void packet_tcp_keepalive_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
-                              char **out_packet, int *out_packet_len, int ttl) {
+                              char **out_packet, int *out_packet_len,
+                              uint32_t known_seq, int ttl) {
   char *datagram = calloc(DATAGRAM_LEN, sizeof(char));
   struct iphdr *iph = (struct iphdr *)datagram;
   struct tcphdr *tcph = (struct tcphdr *)(datagram + sizeof(struct iphdr));
@@ -233,11 +234,17 @@ void packet_tcp_keepalive_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
   iph->saddr = src->sin_addr.s_addr;
   iph->daddr = dst->sin_addr.s_addr;
 
-  // TCP header configuration
+  // TCP header configuration for a keepalive packet
+  //
+  // My research really is here. I am currently prototyping different
+  // permutations of a TCP/IP keepalive signal.
   tcph->source = src->sin_port;
   tcph->dest = dst->sin_port;
-  tcph->seq = htonl(0);
-  tcph->ack_seq = htonl(0);
+  tcph->seq = known_seq -
+              1;  // Keepalive packets are the current sequence number minus 1
+  tcph->ack_seq =
+      known_seq -
+      1;            // Keepalive packets are the current sequence number minus 1
   tcph->doff = 10;  // tcp header size
   tcph->fin = 0;
   tcph->syn = 0;
