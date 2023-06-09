@@ -242,7 +242,7 @@ void packet_tcp_keepalive_ttl(struct sockaddr_in *src, struct sockaddr_in *dst,
   tcph->dest = dst->sin_port;
   tcph->seq = known_seq - 1;
   tcph->ack_seq = 0;
-  tcph->doff = sizeof (tcph);  // tcp header size
+  tcph->doff = sizeof(tcph);  // tcp header size
   tcph->fin = 0;
   tcph->syn = 0;
   tcph->rst = 0;

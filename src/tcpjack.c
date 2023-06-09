@@ -44,7 +44,7 @@ void usage() {
   printf("Options:\n");
   printf("-h, help           Display help and usage.\n");
   printf("-l, list           List established TCP connections and inodes.\n");
-  printf("-t, trace  <ino>   Trace (layer 3) connection by inode.\n");
+  //  printf("-t, trace  <ino>   Trace (layer 3) connection by inode.\n"); // TODO this can be un-commented once the feature is complete. For now its hidden!
   //  printf("-p, pid    <pid>   Trace (layer 3) connection by pid.\n");
   printf("-j, jack   <ino>   Send data to existing TCP connection.\n");
   printf("\n");

@@ -137,7 +137,8 @@ void *emit_trace_packets(void *vctx) {
     int packet_len;
 
     packet_tcp_keepalive_ttl(&saddr, &daddr, &packet, &packet_len,
-                             ctx.sniffed_ip_header->id, ctx.sniffed_tcp_header->seq, i + 1);
+                             ctx.sniffed_ip_header->id,
+                             ctx.sniffed_tcp_header->seq, i + 1);
     if (ctx.conn.proc_entry.jacked_fd <= 0) {
       printf("Connection dropped!\n");
     }
@@ -284,7 +285,6 @@ struct TraceReport trace_tcpconn(struct TCPConn tcpconn) {
 
   // eth_header, ip_header, tcp_header is now available and guaranteed
   // to be a sniffed packet from the hijacked TCP connection.
-
 
   // Spawn the sniff thread
   struct TraceSniffContext sctx = {.handle = handle,
