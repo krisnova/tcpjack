@@ -7,10 +7,15 @@ Perform analysis of routing topology using established TCP connections.
 
 ### Installing 
 
-``` 
-// TODO
-```
+Install **tcpjack** like any normal Linux program. Download the source code and compile using your local C compiler.
 
+``` 
+wget https://github.com/krisnova/tcpjack/archive/refs/tags/v0.0.2.tar.gz
+tar -xzf v0.0.2.tar.gz
+cd tcpjack-0.0.2
+make
+sudo make install
+```
 
 ### Example Hijacking a TCP connection
 
