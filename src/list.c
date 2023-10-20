@@ -38,7 +38,7 @@
  */
 struct TCPList list() {
   struct TCPList tcplist = {};
-  char proc_net_tcp[13] = "/proc/net/tcp";
+  char proc_net_tcp[14] = "/proc/net/tcp";
   FILE *f = fopen(proc_net_tcp, "r");
   char line[1024];
   int line_num = 0;  // Line number in the proc file
